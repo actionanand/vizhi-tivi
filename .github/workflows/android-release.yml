@@ -1,0 +1,115 @@
+name: Vizhi TiVi - Signed Android / TV
+
+on:
+  push:
+    branches:
+      - main-android
+      - main-tv
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vizhi-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Only release-branch pushes / manual runs; bot-generated version commits do not loop.
+    if: >-
+      (github.ref_name == 'main-android' || github.ref_name == 'main-tv') &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PLATFORM: ${{ github.ref_name == 'main-tv' && 'tv' || 'mobile' }}
+      VARIANT: ${{ github.ref_name == 'main-tv' && 'Tv' || 'Mobile' }}
+    steps:
+      - name: Checkout latest release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install exact SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          source android-sdk.properties
+          sdkmanager --install "platforms;android-${COMPILE_SDK_VERSION}" "build-tools;${BUILD_TOOLS_VERSION}" 'platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Verify starter and tests before incrementing version
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/validate-config.py
+          python3 -m unittest discover -s scripts/tests -v
+          gradle -p android ":app:lint${VARIANT}Debug" ":app:test${VARIANT}DebugUnitTest" ":app:assemble${VARIANT}Debug"
+
+      - name: Bump only this target's version
+        run: python3 scripts/bump-version.py --platform "$PLATFORM"
+
+      - name: Require signing secrets and decode keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$KEYSTORE_BASE64" && -n "$KEYSTORE_PASSWORD" && -n "$KEY_ALIAS" ]] || {
+            echo 'Required signing secrets are not configured.' >&2
+            exit 1
+          }
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/vizhi-tivi-release.jks"
+          chmod 600 "$RUNNER_TEMP/vizhi-tivi-release.jks"
+          test -s "$RUNNER_TEMP/vizhi-tivi-release.jks"
+
+      - name: Build, sign and verify APK + AAB
+        shell: bash
+        env:
+          SIGNING_KEYSTORE_PATH: ${{ runner.temp }}/vizhi-tivi-release.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: bash scripts/ci-build.sh "$PLATFORM"
+
+      - name: Commit version bump after successful signed build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          VERSION_FILE=android-version.json
+          [[ "$PLATFORM" == 'tv' ]] && VERSION_FILE=tv-version.json
+          git add "$VERSION_FILE"
+          git commit -m "chore(${PLATFORM}): bump version after signed build [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Upload signed application artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vizhi-tivi-${{ env.PLATFORM }}-${{ github.run_number }}
+          path: artifacts/${{ env.PLATFORM }}/*
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Delete decoded signing key
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/vizhi-tivi-release.jks"

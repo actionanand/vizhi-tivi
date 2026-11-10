@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tagline">The world before your eyes.</string>
+    <string name="mobile_starter">Android mobile starter — channel browsing to be implemented.</string>
+    <string name="tv_starter">TV starter — D-pad focus and channel playback to be implemented.</string>
+</resources>

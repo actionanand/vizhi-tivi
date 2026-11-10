@@ -1,0 +1,7 @@
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.kt text eol=lf
+*.kts text eol=lf
+*.json text eol=lf

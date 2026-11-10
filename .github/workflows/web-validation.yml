@@ -1,0 +1,31 @@
+name: Vizhi TiVi - Angular validation
+
+on:
+  pull_request:
+    branches: [master, main-github]
+  push:
+    branches: [master, main-github]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build Angular if the user has installed a web app
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f web/package.json ]]; then
+            echo 'Angular web/ is intentionally empty. No web build yet.'
+            exit 0
+          fi
+          cd web
+          npm ci
+          npm run build

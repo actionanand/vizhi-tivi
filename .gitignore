@@ -1,0 +1,33 @@
+# Android / Gradle
+.gradle/
+**/.gradle/
+**/build/
+android/local.properties
+*.iml
+.idea/
+.cxx/
+*.apk
+*.aab
+*.idsig
+# Secret material
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.b64
+keystore*.txt
+**/secrets.properties
+.env
+.env.*
+!.env.example
+# Frontend
+node_modules/
+dist/
+.angular/
+coverage/
+# Reports & generated outputs
+releases/
+artifacts/
+*.log
+__pycache__/
+.DS_Store

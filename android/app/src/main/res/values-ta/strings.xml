@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tagline">உலகம் உங்கள் விழிகளில்!</string>
+    <string name="mobile_starter">ஆண்ட்ராய்டு செயலி தொடக்க வடிவம்</string>
+    <string name="tv_starter">தொலைக்காட்சி செயலி தொடக்க வடிவம்</string>
+</resources>

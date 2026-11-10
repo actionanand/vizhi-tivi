@@ -1,0 +1,12 @@
+{
+  "appName": "Vizhi TiVi",
+  "mobileApplicationId": "com.actionanand.vizhitivi.app",
+  "tvApplicationId": "com.actionanand.vizhitivi.tv",
+  "releaseBaseName": "vizhi-tivi",
+  "supportedLocales": [
+    "en",
+    "ta",
+    "sa"
+  ],
+  "dataRepository": "https://github.com/actionanand/vizhi-tivi-data"
+}
