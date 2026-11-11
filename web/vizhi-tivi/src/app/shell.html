@@ -1,0 +1,235 @@
+<div
+  class="layout"
+  [class.light]="store.data().theme === 'light'"
+  [class.system]="store.data().theme === 'system'"
+  [attr.lang]="store.data().locale"
+>
+  <a href="#content" class="skip">{{ store.t('channels') }}</a>
+  <aside>
+    <div class="brand">
+      <img ngSrc="app-icon.png" width="48" height="48" alt="" priority /><strong>Vizhi TiVi</strong>
+    </div>
+    <p>{{ store.t('tagline') }}</p>
+    <nav [attr.aria-label]="store.t('home')">
+      @for (item of nav; track item) {
+        <button [attr.aria-current]="page() === item ? 'page' : null" (click)="navigate(item)">
+          {{ store.t(item) }}
+        </button>
+      }
+    </nav>
+    <p class="privacy">{{ store.t('private_notice') }}</p>
+  </aside>
+  <main id="content">
+    <header>
+      <div>
+        <span class="eyebrow">VIZHI TIVI / {{ store.t('live') }}</span>
+        <h1>{{ store.t(page()) }}</h1>
+      </div>
+      <span class="live">● {{ store.t('live') }}</span>
+    </header>
+    @if (store.loading()) {
+      <p role="status">{{ store.t('loading') }}</p>
+    }
+    @if (store.error()) {
+      <p class="notice error" role="alert">{{ store.t('operation_error') }}</p>
+    }
+    @if (selected(); as c) {
+      <app-player [channel]="c" (closed)="close()" />
+    } @else if (page() === 'settings') {
+      <section class="panel settings">
+        <label
+          >{{ store.t('ui_language')
+          }}<select [value]="store.data().locale" (change)="setLocale($event)">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="sa">संस्कृतम्</option>
+          </select></label
+        >
+        <label
+          >{{ store.t('theme')
+          }}<select [value]="store.data().theme" (change)="store.save({ theme: value($event) })">
+            <option value="system">{{ store.t('system_theme') }}</option>
+            <option value="dark">{{ store.t('dark_theme') }}</option>
+            <option value="light">{{ store.t('light_theme') }}</option>
+          </select></label
+        >
+        <label
+          >{{ store.t('endpoint')
+          }}<input
+            type="url"
+            [value]="endpoint()"
+            (input)="endpoint.set(value($event))"
+            placeholder="https://"
+        /></label>
+        <div class="actions">
+          <button (click)="store.save({ endpoint: endpoint() })">{{ store.t('save') }}</button
+          ><button [disabled]="store.loading() || !store.data().endpoint" (click)="store.refresh()">
+            {{ store.t('refresh') }}
+          </button>
+        </div>
+        <label class="check"
+          ><input
+            type="checkbox"
+            [checked]="store.data().localNumbers"
+            (change)="store.save({ localNumbers: !store.data().localNumbers })"
+          />{{ store.t('local_numbers') }}</label
+        >
+        <p>{{ store.t('private_notice') }}</p>
+        <p>{{ store.t('browser_notice') }}</p>
+      </section>
+    } @else {
+      @if (page() === 'imported') {
+        <section class="panel">
+          <p>{{ store.t('private_notice') }}</p>
+          <p>{{ store.t('browser_notice') }}</p>
+          <div class="import-form">
+            <label
+              >{{ store.t('playlist_name')
+              }}<input [value]="name()" (input)="name.set(value($event))" /></label
+            ><label
+              >{{ store.t('import_file')
+              }}<input
+                type="file"
+                accept=".m3u,.m3u8,audio/x-mpegurl"
+                (change)="file($event)"
+                [disabled]="store.loading()"
+            /></label>
+          </div>
+          <div class="import-form">
+            <label
+              >{{ store.t('url')
+              }}<input
+                type="url"
+                [value]="url()"
+                (input)="url.set(value($event))"
+                placeholder="https://" /></label
+            ><button [disabled]="store.loading()" (click)="store.importUrl(url())">
+              {{ store.t('import_url') }}
+            </button>
+          </div>
+          @for (p of store.data().playlists; track p.id) {
+            <div class="playlist">
+              <span>{{ p.name }} · {{ p.channels.length }}</span
+              ><button (click)="removeId.set(p.id)">{{ store.t('remove') }}</button>
+              @if (removeId() === p.id) {
+                <div role="group" [attr.aria-label]="store.t('remove_confirm')">
+                  <p>{{ store.t('remove_confirm') }}</p>
+                  <button (click)="store.remove(p.id); removeId.set(null)">
+                    {{ store.t('remove') }}</button
+                  ><button (click)="removeId.set(null)">{{ store.t('cancel') }}</button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      } @else if (store.catalogue().developmentFixture) {
+        <p class="notice">{{ store.t('fixture_notice') }}</p>
+      }
+      @if (page() === 'home' && recent().length) {
+        <h2>{{ store.t('recent') }}</h2>
+        <div class="rail">
+          @for (c of recent(); track c.id) {
+            <button [id]="'recent-' + c.id" [disabled]="!playable(c)" (click)="play(c, $event)">
+              {{ c.name }}
+            </button>
+          }
+        </div>
+      }
+      <section class="filters" [attr.aria-label]="store.t('channels')">
+        <label class="search"
+          >{{ store.t('search')
+          }}<input type="search" [value]="search()" (input)="search.set(value($event))"
+        /></label>
+        <label
+          >{{ store.t('language')
+          }}<select [value]="language()" (change)="language.set(value($event))">
+            <option value="">{{ store.t('all') }}</option>
+            @for (l of languages(); track l) {
+              <option [value]="l">{{ l }}</option>
+            }
+          </select></label
+        >
+        <label
+          >{{ store.t('category')
+          }}<select [value]="category()" (change)="category.set(value($event))">
+            <option value="">{{ store.t('all') }}</option>
+            @for (c of categories(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select></label
+        >
+        <label
+          >{{ store.t('country')
+          }}<select [value]="country()" (change)="country.set(value($event))">
+            <option value="">{{ store.t('all') }}</option>
+            @for (c of countries(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select></label
+        >
+      </section>
+      <div class="grid">
+        @for (c of shown(); track c.id) {
+          <article class="channel">
+            <div class="card-top">
+              <span class="number">{{
+                c.number === null ? '—' : c.number.toString().padStart(3, '0')
+              }}</span
+              ><button
+                class="star"
+                [attr.aria-label]="
+                  store.t(store.data().favourites.includes(c.id) ? 'unfavourite' : 'favourite') +
+                  ' ' +
+                  c.name
+                "
+                [attr.aria-pressed]="store.data().favourites.includes(c.id)"
+                (click)="store.toggleFavourite(c.id)"
+              >
+                {{ store.data().favourites.includes(c.id) ? '★' : '☆' }}
+              </button>
+            </div>
+            @if (c.logo) {
+              <img
+                class="channel-logo"
+                [src]="c.logo"
+                alt=""
+                width="64"
+                height="64"
+                referrerpolicy="no-referrer"
+                (error)="logoFallback($event)"
+              />
+            } @else {
+              <div class="monogram" aria-hidden="true">{{ c.name.slice(0, 1) }}</div>
+            }
+            <h2>{{ c.name }}</h2>
+            <p>{{ c.languages.join(', ') }} · {{ c.category }} · {{ c.country }}</p>
+            @if (c.playlistId) {
+              <span class="badge">{{ store.t('imported') }}</span
+              ><label
+                >{{ store.t('language')
+                }}<select
+                  [value]="c.languages[0]"
+                  (change)="store.correctLanguage(c, value($event))"
+                >
+                  <option value="und">—</option>
+                  <option value="ta">தமிழ்</option>
+                  <option value="en">English</option>
+                  <option value="sa">संस्कृतम्</option>
+                </select></label
+              >
+            }
+            @if (playable(c)) {
+              <button class="play" [id]="'play-' + c.id" (click)="play(c, $event)">
+                ▶ {{ store.t('play') }}
+              </button>
+            } @else {
+              <p class="unavailable">{{ store.t('unavailable') }}</p>
+            }
+          </article>
+        } @empty {
+          <p>{{ store.t('empty') }}</p>
+        }
+      </div>
+    }
+  </main>
+</div>

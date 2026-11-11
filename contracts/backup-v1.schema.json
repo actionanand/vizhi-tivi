@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Private device backup, future transport contract",
+  "type": "object",
+  "required": ["schemaVersion", "settings", "playlists"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "settings": {
+      "type": "object",
+      "required": ["locale", "theme", "favourites", "recent", "localNumbers"],
+      "properties": {
+        "locale": { "enum": ["en", "ta", "sa"] },
+        "theme": { "enum": ["system", "light", "dark"] },
+        "favourites": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+        "recent": { "type": "array", "maxItems": 30, "uniqueItems": true, "items": { "type": "string" } },
+        "localNumbers": { "type": "boolean" }
+      }
+    },
+    "playlists": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["id", "name", "channels"],
+        "properties": {
+          "id": { "type": "string" }, "name": { "type": "string" },
+          "channels": { "type": "array", "items": { "$ref": "catalogue-v1.schema.json#/$defs/channel" } }
+        }
+      }
+    }
+  }
+}

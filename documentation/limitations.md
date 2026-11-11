@@ -1,13 +1,14 @@
-# Starter limitations
+# Stage 1 limitations
 
-This ZIP is a **basic project skeleton**, not a finished Live TV application.
+The repository started as a skeleton. Stage 1 adds a usable browsing/import/player foundation; production and device acceptance remain separate.
 
-- No real IPTV player, channel parser, catalogue service, Dropbox sync, storage or TV guide yet.
+- Native Media3 and web native/HLS playback, M3U import, local storage and catalogue refresh are implemented. No working broadcasts are bundled, and actual playback needs a permitted compatible stream and device/browser checks.
+- No Dropbox synchronization, EPG guide, DRM handling, recording, downloads, VOD or background audio playback.
 - No real data repository created; URL in `app-config.json` is reserved as planned identity.
-- Web app is left ungenerated for your existing/basic Angular app.
+- Existing Angular 22 client is in `web/vizhi-tivi/`. Web DASH reports unsupported; browser CORS/codecs/autoplay restrictions apply. No offline shell service worker is included.
 - App icons and banner are temporary branded placeholders, not production artwork.
 - Mobile and TV product flavors use **different app IDs** because you requested independent release-version branches; both use the same Kotlin source and Gradle app module.
 - Gradle wrapper JAR is not bundled. `scripts/bootstrap.sh` can generate a wrapper when Gradle is installed.
-- Android builds were not executed in this environment; validate the Gradle dependencies and Android tooling locally or with GitHub Actions before publishing.
+- See [validation.md](validation.md) for exact local build/test results and remaining visual/physical-device checks. Do not infer Google Play TV quality compliance from a successful APK build.
 - GitHub Actions workflows require a repository with the named branches, available secrets and permission to push version commits.
 - App signing and catalogue rights remain your responsibility.

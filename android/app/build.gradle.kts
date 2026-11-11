@@ -26,7 +26,11 @@ val signingEnabled = keystorePath != null && signingStorePassword != null && sig
 
 android {
     namespace = "com.actionanand.vizhitivi"
-    compileSdk = sdk.getProperty("COMPILE_SDK_VERSION").toInt()
+    compileSdk {
+        version = release(sdk.getProperty("COMPILE_SDK_VERSION").toInt()) {
+            minorApiLevel = sdk.getProperty("COMPILE_SDK_MINOR").toInt()
+        }
+    }
     buildToolsVersion = sdk.getProperty("BUILD_TOOLS_VERSION")
 
     defaultConfig {
@@ -46,14 +50,12 @@ android {
             applicationId = config["mobileApplicationId"] as String
             versionCode = versionCodeFrom(androidVersion)
             versionName = versionNameFrom(androidVersion)
-            manifestPlaceholders["launcherCategory"] = "android.intent.category.LAUNCHER"
         }
         create("tv") {
             dimension = "device"
             applicationId = config["tvApplicationId"] as String
             versionCode = versionCodeFrom(tvVersion)
             versionName = versionNameFrom(tvVersion)
-            manifestPlaceholders["launcherCategory"] = "android.intent.category.LEANBACK_LAUNCHER"
         }
     }
 
@@ -81,7 +83,10 @@ android {
         }
     }
 
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true; resValues = true }
+    bundle { language { enableSplit = false } }
+    sourceSets.getByName("main").assets.directories.add("../../contracts/fixtures")
+    sourceSets.getByName("test").resources.directories.add("../../contracts/fixtures")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -93,6 +98,17 @@ kotlin {
 }
 
 dependencies {
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+    implementation("androidx.tv:tv-material:1.0.1")
+    implementation("androidx.media3:media3-exoplayer:1.9.3")
+    implementation("androidx.media3:media3-exoplayer-hls:1.9.3")
+    implementation("androidx.media3:media3-exoplayer-dash:1.9.3")
+    implementation("androidx.media3:media3-ui:1.9.3")
+    testImplementation("org.json:json:20240303")
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation(platform("androidx.compose:compose-bom:2026.09.00"))

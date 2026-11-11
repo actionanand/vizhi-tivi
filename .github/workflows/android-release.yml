@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    # Only release-branch pushes / manual runs; bot-generated version commits do not loop.
+    # Only release-branch pushes; bot-generated version commits do not loop.
     if: >-
       (github.ref_name == 'main-android' || github.ref_name == 'main-tv') &&
       github.actor != 'github-actions[bot]'
@@ -53,7 +53,8 @@ jobs:
         run: |
           set -euo pipefail
           source android-sdk.properties
-          sdkmanager --install "platforms;android-${COMPILE_SDK_VERSION}" "build-tools;${BUILD_TOOLS_VERSION}" 'platform-tools'
+          sdkmanager --list | tee "$RUNNER_TEMP/android-sdk-packages.txt"
+          sdkmanager --install "platforms;android-${COMPILE_SDK_PACKAGE}" "build-tools;${BUILD_TOOLS_VERSION}" 'platform-tools'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4

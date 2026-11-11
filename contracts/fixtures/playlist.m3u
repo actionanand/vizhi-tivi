@@ -1,0 +1,9 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="sample-ta" tvg-name="Tamil sample" tvg-logo="https://example.invalid/logo.png" group-title="News" tvg-language="Tamil",Sample, Tamil
+https://example.invalid/live.m3u8
+#EXTINF:-1 tvg-id="sample-ta" tvg-language="ta",Duplicate
+https://example.invalid/live.m3u8
+#EXTINF:-1 tvg-id="sample-en" tvg-language="en" group-title="Music",English sample
+https://example.invalid/live.mpd
+#EXTINF:-1,Unsafe entry
+file:///private/sample

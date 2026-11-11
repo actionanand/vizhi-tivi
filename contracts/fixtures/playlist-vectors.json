@@ -1,0 +1,18 @@
+{
+  "input": "#EXTM3U\n#EXTINF:-1 tvg-id=\"sample-ta\" tvg-name=\"Tamil sample\" tvg-logo=\"https://example.invalid/logo.png\" group-title=\"News\" tvg-language=\"Tamil\",Sample, Tamil\nhttps://example.invalid/live.m3u8\n#EXTINF:-1 tvg-id=\"sample-ta\" tvg-language=\"ta\",Duplicate\nhttps://example.invalid/live.m3u8\n#EXTINF:-1 tvg-id=\"sample-en\" tvg-language=\"en\" group-title=\"Music\",English sample\nhttps://example.invalid/live.mpd\n#EXTINF:-1,Unsafe entry\nfile:///private/sample\n",
+  "playlistId": "test",
+  "expected": [
+    {
+      "id": "import.test.fecbd2a09488e7abceef160badd17164d37d194a3fddaae428a8acfd7d0a25ba",
+      "name": "Sample, Tamil",
+      "language": "ta",
+      "format": "hls"
+    },
+    {
+      "id": "import.test.a81aeea68bbac2c7b994544515e9c9e693f0e61b4f32262d2e8ca2876c0a4230",
+      "name": "English sample",
+      "language": "en",
+      "format": "dash"
+    }
+  ]
+}

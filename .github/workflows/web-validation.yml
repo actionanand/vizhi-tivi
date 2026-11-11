@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, main-github]
   push:
-    branches: [master, main-github]
+    branches: [master, main-github, 'feature/**']
   workflow_dispatch:
 
 permissions:
@@ -17,15 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - name: Build Angular if the user has installed a web app
+          node-version-file: web/vizhi-tivi/.nvmrc
+      - name: Validate Angular client
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! -f web/package.json ]]; then
-            echo 'Angular web/ is intentionally empty. No web build yet.'
-            exit 0
-          fi
-          cd web
+          cd web/vizhi-tivi
           npm ci
-          npm run build
+          npm run lint
+          npm test -- --watch=false
+          npm run build:gh

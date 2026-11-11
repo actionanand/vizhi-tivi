@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "developmentFixture": true,
+  "channels": [
+    { "id": "demo.tamil", "number": 1, "name": "Tamil • Development sample", "languages": ["ta"], "country": "IN", "region": "Tamil Nadu", "category": "News", "provider": "Development fixture", "source": "Local metadata demonstration; no broadcast supplied", "streams": [] },
+    { "id": "demo.english", "number": 251, "name": "English • Development sample", "languages": ["en"], "country": "IN", "region": "", "category": "Music", "provider": "Development fixture", "source": "Local metadata demonstration; no broadcast supplied", "streams": [] }
+  ]
+}
