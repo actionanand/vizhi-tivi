@@ -1,8 +1,8 @@
 import Ajv2020 from 'ajv/dist/2020';
-import schema from '../../../../../contracts/catalogue-v1.schema.json';
+import schema from '../../../../../contracts/legacy-device-catalogue-v1.schema.json';
 import fixture from '../../../../../contracts/fixtures/catalogue-v1.json';
 
-describe('Published JSON Schema', () => {
+describe('Legacy/private device JSON Schema', () => {
   const validate = new Ajv2020({ strict: false }).compile(schema);
   it('validates the shared development fixture', () => expect(validate(fixture)).toBe(true));
   it('rejects unsupported contract versions', () =>

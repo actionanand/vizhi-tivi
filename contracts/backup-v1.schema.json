@@ -22,7 +22,7 @@
         "type": "object", "required": ["id", "name", "channels"],
         "properties": {
           "id": { "type": "string" }, "name": { "type": "string" },
-          "channels": { "type": "array", "items": { "$ref": "catalogue-v1.schema.json#/$defs/channel" } }
+          "channels": { "type": "array", "items": { "$ref": "legacy-device-catalogue-v1.schema.json#/$defs/channel" } }
         }
       }
     }

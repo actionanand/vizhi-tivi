@@ -1,4 +1,13 @@
-import { Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Channel, playable } from './core/domain';
 import { LiveStore } from './core/store';
 import { inject } from '@angular/core';
@@ -20,6 +29,9 @@ import type Hls from 'hls.js';
       />
       <h2>{{ channel().name }}</h2>
       <span>{{ store.t('live') }}</span>
+      @if (isTrial()) {
+        <span>{{ store.t('trial') }}</span>
+      }
     </header>
     <video
       #video
@@ -98,6 +110,7 @@ export class LivePlayer {
   readonly channel = input.required<Channel>();
   readonly closed = output<void>();
   readonly store = inject(LiveStore);
+  readonly isTrial = computed(() => playable(this.channel())?.status === 'experimental');
   readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
   readonly failed = signal(false);
   readonly buffering = signal(true);

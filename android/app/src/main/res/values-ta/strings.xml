@@ -45,4 +45,6 @@
     <string name="url">HTTPS முகவரி</string>
     <string name="on">இயக்கு</string>
     <string name="off">முடக்கு</string>
+    <string name="trial">சோதனை ஒளிபரப்பு</string>
+    <string name="official_empty">அனுமதிக்கப்பட்ட சேனல்கள் இன்னும் வெளியிடப்படவில்லை.</string>
 </resources>

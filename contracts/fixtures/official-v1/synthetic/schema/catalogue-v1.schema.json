@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actionanand.github.io/vizhi-tivi-data/schema/catalogue-v1.schema.json",
+  "title": "Vizhi TiVi Public Catalogue v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "channels"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/channel"
+      }
+    }
+  },
+  "$defs": {
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "number",
+        "name",
+        "languages",
+        "country",
+        "region",
+        "category",
+        "broadcaster",
+        "website",
+        "logoUrl",
+        "sourceUrls",
+        "streamIds"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,99}$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{3}$"
+          }
+        },
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "enum": [
+            "general",
+            "news",
+            "sports",
+            "music",
+            "kids",
+            "entertainment",
+            "education",
+            "culture",
+            "religious",
+            "other"
+          ]
+        },
+        "broadcaster": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "website": {
+          "type": "string",
+          "format": "uri"
+        },
+        "logoUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceUrls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "minItems": 1
+        },
+        "streamIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

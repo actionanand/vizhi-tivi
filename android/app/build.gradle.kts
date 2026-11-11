@@ -41,6 +41,7 @@ android {
         versionName = versionNameFrom(androidVersion)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "app_name", config["appName"] as String)
+        buildConfigField("String", "CATALOGUE_MANIFEST_URL", groovy.json.JsonOutput.toJson(config["catalogueManifestUrl"]))
     }
 
     flavorDimensions += "device"
@@ -85,7 +86,6 @@ android {
 
     buildFeatures { compose = true; buildConfig = true; resValues = true }
     bundle { language { enableSplit = false } }
-    sourceSets.getByName("main").assets.directories.add("../../contracts/fixtures")
     sourceSets.getByName("test").resources.directories.add("../../contracts/fixtures")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -98,6 +98,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")

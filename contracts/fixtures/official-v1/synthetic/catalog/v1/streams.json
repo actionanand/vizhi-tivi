@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "streams": [
+    {
+      "id": "eng-trial",
+      "channelId": "test-english",
+      "url": "https://example.com/synthetic/eng-trial",
+      "format": "dash",
+      "playbackStatus": "experimental",
+      "lastVerifiedAt": "2026-01-01",
+      "rightsEvidenceUrl": "https://example.org/rights/eng-trial"
+    },
+    {
+      "id": "hin-verified",
+      "channelId": "test-hindi",
+      "url": "https://example.com/synthetic/hin-verified",
+      "format": "hls",
+      "playbackStatus": "verified",
+      "lastVerifiedAt": "2026-01-01",
+      "rightsEvidenceUrl": "https://example.org/rights/hin-verified"
+    },
+    {
+      "id": "san-verified",
+      "channelId": "test-sanskrit",
+      "url": "https://example.com/synthetic/san-verified",
+      "format": "progressive",
+      "playbackStatus": "verified",
+      "lastVerifiedAt": "2026-01-01",
+      "rightsEvidenceUrl": "https://example.org/rights/san-verified"
+    },
+    {
+      "id": "tam-a-trial",
+      "channelId": "test-tamil",
+      "url": "https://example.com/synthetic/tam-a-trial",
+      "format": "hls",
+      "playbackStatus": "experimental",
+      "lastVerifiedAt": "2026-01-01",
+      "rightsEvidenceUrl": "https://example.org/rights/tam-a-trial"
+    },
+    {
+      "id": "tam-z-verified",
+      "channelId": "test-tamil",
+      "url": "https://example.com/synthetic/tam-z-verified",
+      "format": "hls",
+      "playbackStatus": "verified",
+      "lastVerifiedAt": "2026-01-01",
+      "rightsEvidenceUrl": "https://example.org/rights/tam-z-verified"
+    }
+  ]
+}

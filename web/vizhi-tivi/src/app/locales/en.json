@@ -43,5 +43,7 @@
   "playlist_name": "Playlist name / reimport identity",
   "url": "HTTPS URL",
   "on": "On",
-  "off": "Off"
+  "off": "Off",
+  "trial": "Experimental • trial stream",
+  "official_empty": "No approved channels have been published yet."
 }

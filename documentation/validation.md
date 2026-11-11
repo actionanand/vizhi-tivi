@@ -1,4 +1,6 @@
-# Stage 1 validation report — 11 November 2026
+# Initial Stage 1 validation report — 11 November 2026
+
+This records the initial implementation. See [the integration correction report](integration-validation.md) for the current authoritative catalogue adapter, endpoints, test counts and changed files.
 
 ## Worktree and release safety
 

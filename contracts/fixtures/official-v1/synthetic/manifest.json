@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "contentSha256": "c103f9ac64c904bdadc70bee5dc8312e2213c04c236bec6c595e71e18d565c15",
+  "channelCount": 4,
+  "streamCount": 5,
+  "uiLocales": [
+    "en",
+    "ta",
+    "sa"
+  ],
+  "numbering": {
+    "tamil": {
+      "start": 1,
+      "end": 250
+    },
+    "other": {
+      "start": 251
+    }
+  },
+  "paths": {
+    "catalogue": "catalog/v1/catalogue.json",
+    "streams": "catalog/v1/streams.json",
+    "schemas": {
+      "catalogue": "schema/catalogue-v1.schema.json",
+      "streams": "schema/streams-v1.schema.json"
+    },
+    "locales": {
+      "en": "catalog/v1/locales/en.json",
+      "ta": "catalog/v1/locales/ta.json",
+      "sa": "catalog/v1/locales/sa.json"
+    }
+  }
+}

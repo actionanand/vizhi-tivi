@@ -45,4 +45,6 @@
     <string name="url">HTTPS सङ्केतः</string>
     <string name="on">सक्रियम्</string>
     <string name="off">निष्क्रियम्</string>
+    <string name="trial">प्रायोगिकः प्रसारः</string>
+    <string name="official_empty">अनुमताः प्रणालिकाः अद्यापि न प्रकाशिताः।</string>
 </resources>

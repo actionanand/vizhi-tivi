@@ -3,7 +3,8 @@ package com.actionanand.vizhitivi.core
 import java.net.URI
 import java.security.MessageDigest
 
-data class Stream(val url: String, val format: String, val status: String = "unreviewed", val permitted: Boolean = false)
+data class Stream(val url: String, val format: String, val status: String = "unreviewed", val permitted: Boolean = false,
+    val id: String? = null, val lastVerifiedAt: String? = null, val rightsEvidenceUrl: String? = null)
 data class Channel(
     val id: String, val number: Int?, val name: String, val languages: List<String>,
     val country: String = "", val region: String = "", val category: String = "Imported TV",
@@ -12,9 +13,12 @@ data class Channel(
     val epgId: String = "", val description: String = ""
 ) {
     val tamil get() = "ta" in languages
-    val playable get() = streams.firstOrNull { safeUrl(it.url) && it.permitted && it.status == "approved" }
+    val playable get() = streams.firstOrNull { safeUrl(it.url) && it.permitted && it.status in listOf("approved", "verified") }
+        ?: streams.firstOrNull { safeUrl(it.url) && it.permitted && it.status == "experimental" }
+    val trial get() = playable?.status == "experimental"
 }
-data class Catalogue(val revision: Int, val channels: List<Channel>, val developmentFixture: Boolean = false)
+data class Catalogue(val revision: Int?, val channels: List<Channel>, val developmentFixture: Boolean = false,
+    val contentSha256: String? = null)
 data class Playlist(val id: String, val name: String, val channels: List<Channel>)
 
 fun safeUrl(raw: String): Boolean = runCatching {

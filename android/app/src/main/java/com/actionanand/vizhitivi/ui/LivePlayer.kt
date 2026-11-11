@@ -63,6 +63,7 @@ fun LivePlayer(channel: Channel, close: () -> Unit) {
             Text(channel.name + " · " + stringResource(R.string.live), style = MaterialTheme.typography.titleLarge)
         }
         if (buffering) LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (channel.trial) Text(stringResource(R.string.trial))
         if (error) {
             Text(stringResource(R.string.playback_error))
             Button({ error = false; player.prepare(); player.play() }) { Text(stringResource(R.string.retry)) }

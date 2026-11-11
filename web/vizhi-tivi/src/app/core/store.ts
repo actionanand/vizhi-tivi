@@ -12,6 +12,14 @@ import {
 import en from '../locales/en.json';
 import ta from '../locales/ta.json';
 import sa from '../locales/sa.json';
+import {
+  OFFICIAL_MANIFEST_URL,
+  PUBLICATION_KEY,
+  decodePublication,
+  loadPublication,
+  parsePublicationCache,
+  publicationCache,
+} from './published-catalogue';
 
 export type Locale = 'en' | 'ta' | 'sa';
 export type TextKey = keyof typeof en;
@@ -31,7 +39,7 @@ const defaults: DeviceState = {
   theme: 'system',
   favourites: [],
   recent: [],
-  endpoint: '',
+  endpoint: OFFICIAL_MANIFEST_URL,
   localNumbers: false,
   playlists: [],
 };
@@ -41,10 +49,11 @@ export const CACHE_KEY = 'vizhi-tivi.catalogue.v1';
 @Service()
 export class LiveStore {
   readonly data = signal<DeviceState>(defaults);
-  readonly catalogue = signal<Catalogue>({ schemaVersion: 1, revision: 1, channels: [] });
+  readonly catalogue = signal<Catalogue>({ schemaVersion: 1, revision: null, channels: [] });
   readonly loading = signal(false);
   readonly error = signal(false);
   private writable = true;
+  private initialized = false;
   readonly all = computed(() => [
     ...this.catalogue().channels,
     ...this.data().playlists.flatMap((p) => p.channels),
@@ -70,10 +79,23 @@ export class LiveStore {
             channels: p.channels,
           }).channels.map((c) => ({ ...c, playlistId: p.id })),
         }));
-        this.data.set({ ...defaults, ...d, playlists });
+        this.data.set({
+          ...defaults,
+          ...d,
+          playlists,
+          endpoint: d.endpoint?.trim() || OFFICIAL_MANIFEST_URL,
+        });
       }
+    } catch {
+      this.error.set(true);
+      this.writable = false;
+    }
+    try {
       const cache = localStorage.getItem(CACHE_KEY);
-      if (cache) this.catalogue.set(decodeCatalogue(JSON.parse(cache)));
+      if (cache) {
+        const legacy = decodeCatalogue(JSON.parse(cache));
+        if (!legacy.developmentFixture) this.catalogue.set(legacy);
+      }
       const official = new Set(
         this.catalogue()
           .channels.map((c) => c.number)
@@ -91,7 +113,6 @@ export class LiveStore {
       }));
     } catch {
       this.error.set(true);
-      this.writable = false;
     }
   }
   t(key: TextKey): string {
@@ -118,34 +139,46 @@ export class LiveStore {
     this.save({ recent: [id, ...this.data().recent.filter((x) => x !== id)].slice(0, 30) });
   }
   async initial(): Promise<void> {
-    if (this.catalogue().channels.length) return;
+    if (this.initialized) return;
+    this.initialized = true;
     await this.operation(async () => {
-      this.catalogue.set(
-        decodeCatalogue(JSON.parse(await this.fetchText('catalogue-v1.json', true))),
-      );
+      try {
+        const cached = localStorage.getItem(PUBLICATION_KEY);
+        if (cached) this.reconcile(await decodePublication(parsePublicationCache(cached)));
+      } catch {
+        this.error.set(true);
+      }
+      await this.refreshPublication();
     });
   }
   async refresh(): Promise<void> {
-    await this.operation(async () => {
-      const old = this.catalogue();
-      const next = decodeCatalogue(
-        JSON.parse(await this.fetchText(this.data().endpoint)),
-        old.developmentFixture ? undefined : old,
-      );
-      localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-      this.catalogue.set(next);
-      // Official numbers win. A new official assignment clears a conflicting private assignment.
-      const official = new Set(next.channels.map((c) => c.number));
-      this.save({
-        playlists: this.data().playlists.map((p) => ({
-          ...p,
-          channels: p.channels.map((c) => ({
-            ...c,
-            number: official.has(c.number) ? null : c.number,
-          })),
+    await this.operation(() => this.refreshPublication());
+  }
+  private async refreshPublication(): Promise<void> {
+    const result = await loadPublication(
+      this.data().endpoint || OFFICIAL_MANIFEST_URL,
+      this.catalogue(),
+      (url) => this.fetchText(url),
+    );
+    const next = result?.catalogue ?? this.catalogue();
+    if (result) localStorage.setItem(PUBLICATION_KEY, publicationCache(result.files));
+    this.reconcile(next);
+    this.error.set(false);
+  }
+  private reconcile(next: Catalogue): void {
+    this.catalogue.set(next);
+    // Official numbers win. A new official assignment clears a conflicting private assignment.
+    const official = new Set(next.channels.map((c) => c.number));
+    this.data.update((d) => ({
+      ...d,
+      playlists: this.data().playlists.map((p) => ({
+        ...p,
+        channels: p.channels.map((c) => ({
+          ...c,
+          number: official.has(c.number) ? null : c.number,
         })),
-      });
-    });
+      })),
+    }));
   }
   async importText(raw: string, identity: string, name: string): Promise<void> {
     await this.operation(async () => {
@@ -197,8 +230,8 @@ export class LiveStore {
       this.loading.set(false);
     }
   }
-  async fetchText(raw: string, fixture = false): Promise<string> {
-    if (!fixture && !safeUrl(raw)) throw Error('HTTPS required');
+  async fetchText(raw: string): Promise<string> {
+    if (!safeUrl(raw)) throw Error('HTTPS required');
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const result = await fetch(raw, {
@@ -206,7 +239,7 @@ export class LiveStore {
           credentials: 'omit',
           referrerPolicy: 'no-referrer',
         });
-        if (!result.ok || (!fixture && !safeUrl(result.url))) throw Error('Network unavailable');
+        if (!result.ok || !safeUrl(result.url)) throw Error('Network unavailable');
         const reader = result.body?.getReader();
         if (!reader) throw Error('Empty response');
         const chunks: Uint8Array[] = [];

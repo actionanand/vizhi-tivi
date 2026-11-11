@@ -24,6 +24,13 @@ export class Shell {
   readonly name = signal('My IPTV');
   readonly endpoint = signal(this.store.data().endpoint);
   readonly playable = playable;
+  readonly emptyMessage = computed<TextKey>(() =>
+    ['home', 'channels'].includes(this.page()) &&
+    this.store.catalogue().contentSha256 &&
+    !this.store.catalogue().channels.length
+      ? 'official_empty'
+      : 'empty',
+  );
   private readonly document = inject(DOCUMENT);
   private openerId = '';
   readonly base = computed(() =>

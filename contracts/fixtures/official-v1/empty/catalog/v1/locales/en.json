@@ -1,0 +1,22 @@
+{
+  "appName": "Vizhi TiVi",
+  "tagline": "The world before your eyes.",
+  "home": "Home",
+  "liveTv": "Live TV",
+  "allChannels": "All Channels",
+  "favourites": "Favourites",
+  "importedTv": "Imported TV",
+  "settings": "Settings",
+  "search": "Search channels",
+  "watch": "Watch live",
+  "unavailable": "Stream not available",
+  "language": "Language",
+  "offline": "You are offline",
+  "retry": "Retry",
+  "noChannels": "No approved channels yet",
+  "live": "LIVE",
+  "tamil": "Tamil",
+  "otherLanguages": "Other languages",
+  "metadataOnly": "Channel information only",
+  "experimental": "Experimental stream"
+}

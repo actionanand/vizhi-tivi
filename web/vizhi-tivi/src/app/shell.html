@@ -219,6 +219,9 @@
               >
             }
             @if (playable(c)) {
+              @if (playable(c)?.status === 'experimental') {
+                <p class="badge">{{ store.t('trial') }}</p>
+              }
               <button class="play" [id]="'play-' + c.id" (click)="play(c, $event)">
                 ▶ {{ store.t('play') }}
               </button>
@@ -227,7 +230,7 @@
             }
           </article>
         } @empty {
-          <p>{{ store.t('empty') }}</p>
+          <p>{{ store.t(emptyMessage()) }}</p>
         }
       </div>
     }

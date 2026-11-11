@@ -25,7 +25,7 @@ The existing Angular 22 project is `web/vizhi-tivi/`; do not reinitialize it. Us
 
 Install APKs from `android/app/build/outputs/apk/mobile/debug/` and `android/app/build/outputs/apk/tv/debug/` using Android Studio or `adb install -r <apk>`. Launch the appropriate app from the phone or TV launcher. Debug apps have `.debug` appended to their application IDs. Mobile and TV can be installed together. For a CLI without a wrapper, substitute `gradle -p android` from repository root for `./gradlew` from `android/`.
 
-Configure a reviewed official HTTPS catalogue in Settings, or use Imported TV to import your own permitted M3U. The bundled fixture is metadata-only. See [Stage 1 behavior](stage-1.md) and [executed validation](validation.md).
+Clients use the official Vizhi TiVi Data manifest by default; Settings accepts a full HTTPS manifest URL for a test mirror. Imported TV accepts your permitted private M3U. The current official publication is empty; local development fixtures are test-only. See [Stage 1 behavior](stage-1.md) and [executed validation](validation.md).
 
 ## Branches
 

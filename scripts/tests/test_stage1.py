@@ -29,9 +29,11 @@ class StageOneConfigurationTests(unittest.TestCase):
             self.assertEqual(set(resources[0]),set(native))
             self.assertEqual(native,web)
 
-    def test_web_fixture_matches_shared_source(self):
+    def test_development_fixture_is_test_only(self):
         source = (ROOT/'contracts/fixtures/catalogue-v1.json').read_bytes()
-        self.assertEqual(source, (ROOT/'web/vizhi-tivi/public/catalogue-v1.json').read_bytes())
+        self.assertFalse((ROOT/'web/vizhi-tivi/public/catalogue-v1.json').exists())
+        gradle = (ROOT/'android/app/build.gradle.kts').read_text()
+        self.assertNotIn('sourceSets.getByName("main").assets.directories.add("../../contracts/fixtures")', gradle)
         fixture = json.loads(source)
         self.assertTrue(fixture['developmentFixture'])
         self.assertTrue(all(not c['streams'] for c in fixture['channels']))

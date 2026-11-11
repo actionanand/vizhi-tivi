@@ -45,4 +45,6 @@
     <string name="url">HTTPS URL</string>
     <string name="on">On</string>
     <string name="off">Off</string>
+    <string name="trial">Experimental • trial stream</string>
+    <string name="official_empty">No approved channels have been published yet.</string>
 </resources>

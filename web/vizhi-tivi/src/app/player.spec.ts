@@ -30,6 +30,17 @@ describe('Foreground player lifecycle', () => {
     vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined);
   });
   afterEach(() => vi.restoreAllMocks());
+  it('labels a playing experimental candidate as a trial', async () => {
+    const fixture = TestBed.createComponent(LivePlayer);
+    fixture.componentRef.setInput('channel', {
+      ...c,
+      streams: [{ ...c.streams[0], status: 'experimental' }],
+    });
+    await fixture.whenStable();
+    expect(fixture.componentInstance.isTrial()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(fixture.componentInstance.store.t('trial'));
+    fixture.destroy();
+  });
   it('loads only after selecting a playable channel and releases on close', async () => {
     const fixture = TestBed.createComponent(LivePlayer);
     fixture.componentRef.setInput('channel', c);

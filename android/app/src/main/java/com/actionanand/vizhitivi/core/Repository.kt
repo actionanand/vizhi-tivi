@@ -20,18 +20,20 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.io.InputStream
 import java.io.ByteArrayOutputStream
+import com.actionanand.vizhitivi.BuildConfig
 
 private val Context.preferences by preferencesDataStore("preferences-v1")
-data class Preferences(val locale: String = "en", val theme: String = "system", val favourites: Set<String> = emptySet(), val recent: List<String> = emptyList(), val endpoint: String = "", val localTamilNumbers: Boolean = false)
+data class Preferences(val locale: String = "en", val theme: String = "system", val favourites: Set<String> = emptySet(), val recent: List<String> = emptyList(), val endpoint: String = BuildConfig.CATALOGUE_MANIFEST_URL, val localTamilNumbers: Boolean = false)
 
 class Repository(private val context: Context) {
     private val lock = Mutex()
     private val cache = AtomicFile(File(context.filesDir, "catalogue-v1.json"))
+    private val publication = AtomicFile(File(context.filesDir, "publication-v1.json"))
     private val imports = AtomicFile(File(context.filesDir, "playlists-v1.json"))
     val preferences: Flow<Preferences> = context.preferences.data.map { p ->
         fun str(k: String, fallback: String = "") = p[stringPreferencesKey(k)] ?: fallback
         Preferences(str("locale", "en").takeIf { it in listOf("en", "ta", "sa") } ?: "en", str("theme", "system"),
-            str("favourites").split('|').filter { it.isNotEmpty() }.toSet(), str("recent").split('|').filter { it.isNotEmpty() }, str("endpoint"), str("localTamil") == "true")
+            str("favourites").split('|').filter { it.isNotEmpty() }.toSet(), str("recent").split('|').filter { it.isNotEmpty() }, str("endpoint").ifBlank { BuildConfig.CATALOGUE_MANIFEST_URL }, str("localTamil") == "true")
     }
     suspend fun preference(key: String, value: String) { context.preferences.edit { it[stringPreferencesKey(key)] = value } }
     suspend fun favourite(id: String) { context.preferences.edit { p ->
@@ -45,15 +47,17 @@ class Repository(private val context: Context) {
         p[key] = (listOf(id) + p[key].orEmpty().split('|').filter { it.isNotEmpty() && it != id }).take(30).joinToString("|")
     } }
     suspend fun initial(): Catalogue = withContext(Dispatchers.IO) {
-        if (cache.baseFile.exists()) CatalogueCodec.decode(String(cache.readFully(), Charsets.UTF_8))
-        else CatalogueCodec.decode(context.assets.open("catalogue-v1.json").bufferedReader().use { it.readText() })
+        if (publication.baseFile.exists()) PublishedCatalogue.decode(PublishedCatalogue.cachedFiles(String(publication.readFully(), Charsets.UTF_8)))
+        else if (cache.baseFile.exists()) CatalogueCodec.decode(String(cache.readFully(), Charsets.UTF_8)).takeUnless { it.developmentFixture } ?: Catalogue(null, emptyList())
+        else Catalogue(null, emptyList())
     }
     suspend fun refresh(endpoint: String, previous: Catalogue): Catalogue = lock.withLock { withContext(Dispatchers.IO) {
         require(safeUrl(endpoint)) { "Catalogue endpoint must be HTTPS" }
-        val text = fetch(endpoint)
-        val next = CatalogueCodec.decode(text, previous.takeUnless { it.developmentFixture })
-        atomicWrite(cache, text)
-        next
+        val next = PublishedCatalogue.load(endpoint.ifBlank { BuildConfig.CATALOGUE_MANIFEST_URL }, previous, ::fetch)
+        if (next == null) previous else {
+            atomicWrite(publication, PublishedCatalogue.cache(next.files))
+            next.catalogue
+        }
     } }
     suspend fun readFile(uri: Uri): String = withContext(Dispatchers.IO) {
         context.contentResolver.openInputStream(uri)?.use { input ->

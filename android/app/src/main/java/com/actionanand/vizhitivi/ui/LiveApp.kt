@@ -103,7 +103,7 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                                 item { Text(stringResource(R.string.recent), style = MaterialTheme.typography.titleLarge) }
                                 item { LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) { items(state.preferences.recent.mapNotNull { id -> all.find { it.id == id } }, key = { it.id }) { c -> ChannelCard(c, vm, state, isTv, restoreId == c.id && shown.none { it.id == c.id }, play) } } }
                             }
-                            if (shown.isEmpty()) item { Text(stringResource(R.string.empty)) }
+                            if (shown.isEmpty()) item { Text(stringResource(if (page in listOf("home", "channels") && state.catalogue.contentSha256 != null && state.catalogue.channels.isEmpty()) R.string.official_empty else R.string.empty)) }
                             if (isTv) items(shown.groupBy { it.category }.toList(), key = { it.first }) { (title, channels) ->
                                 Text(title, style = MaterialTheme.typography.headlineSmall)
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) { items(channels, key = { it.id }) { c -> ChannelCard(c, vm, state, true, restoreId == c.id, play) } }
@@ -136,6 +136,7 @@ private fun ChannelCard(c: Channel, vm: LiveViewModel, state: LiveState, tv: Boo
             Text("${c.languages.joinToString()} · ${c.category}")
             if (c.playlistId != null) Text(stringResource(R.string.imported))
             if (c.playable == null) Text(stringResource(R.string.unavailable))
+            if (c.trial) Text(stringResource(R.string.trial), color = MaterialTheme.colorScheme.primary)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Action(stringResource(if (c.id in state.preferences.favourites) R.string.unfavourite else R.string.favourite), tv, modifier = Modifier.focusRequester(focus)) { vm.favourite(c.id) }
                 if (c.playable != null) Action(stringResource(R.string.play), tv) { play(c) }

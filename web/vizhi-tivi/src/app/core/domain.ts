@@ -1,8 +1,11 @@
 export interface Stream {
   url: string;
   format: 'hls' | 'dash' | 'progressive';
-  status: 'approved' | 'unavailable' | 'unreviewed';
+  status: 'approved' | 'unavailable' | 'unreviewed' | 'verified' | 'experimental';
   permitted: boolean;
+  id?: string;
+  lastVerifiedAt?: string;
+  rightsEvidenceUrl?: string;
 }
 export interface Channel {
   id: string;
@@ -22,7 +25,8 @@ export interface Channel {
 }
 export interface Catalogue {
   schemaVersion: 1;
-  revision: number;
+  revision: number | null;
+  contentSha256?: string;
   developmentFixture?: boolean;
   channels: Channel[];
 }
@@ -40,7 +44,11 @@ export function safeUrl(raw: string): boolean {
   }
 }
 export function playable(c: Channel): Stream | undefined {
-  return c.streams.find((s) => s.permitted && s.status === 'approved' && safeUrl(s.url));
+  return (
+    c.streams.find(
+      (s) => s.permitted && ['approved', 'verified'].includes(s.status) && safeUrl(s.url),
+    ) ?? c.streams.find((s) => s.permitted && s.status === 'experimental' && safeUrl(s.url))
+  );
 }
 export function languageCode(value: string): string {
   const v = value.trim().toLowerCase();

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actionanand.github.io/vizhi-tivi-data/schema/streams-v1.schema.json",
+  "title": "Vizhi TiVi Public Streams v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "streams"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stream"
+      }
+    }
+  },
+  "$defs": {
+    "stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "channelId",
+        "url",
+        "format",
+        "playbackStatus",
+        "lastVerifiedAt",
+        "rightsEvidenceUrl"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "channelId": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "format": {
+          "enum": [
+            "hls",
+            "dash",
+            "progressive"
+          ]
+        },
+        "playbackStatus": {
+          "enum": [
+            "verified",
+            "experimental"
+          ]
+        },
+        "lastVerifiedAt": {
+          "type": "string",
+          "format": "date"
+        },
+        "rightsEvidenceUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

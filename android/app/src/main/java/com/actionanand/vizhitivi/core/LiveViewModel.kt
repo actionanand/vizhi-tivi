@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
@@ -15,7 +16,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-data class LiveState(val catalogue: Catalogue = Catalogue(1, emptyList()), val playlists: List<Playlist> = emptyList(), val preferences: Preferences = Preferences(), val loading: Boolean = true, val error: Boolean = false)
+data class LiveState(val catalogue: Catalogue = Catalogue(null, emptyList()), val playlists: List<Playlist> = emptyList(), val preferences: Preferences = Preferences(), val loading: Boolean = true, val error: Boolean = false)
 class LiveViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = Repository(application)
     private val operations = Mutex()
@@ -24,10 +25,16 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     init {
         viewModelScope.launch { repository.preferences.catch { mutable.update { it.copy(error = true) } }.collect { p -> mutable.update { it.copy(preferences = p) } } }
         action {
-            val catalogue = repository.initial(); val playlists = repository.playlists()
+            val playlists = repository.playlists()
+            mutable.update { it.copy(playlists = playlists) }
+            var catalogue = state.value.catalogue
+            try { catalogue = repository.initial() } catch (e: Exception) { if (e is CancellationException) throw e; mutable.update { it.copy(error = true) } }
             val official = catalogue.channels.mapNotNull { it.number }.toSet()
             val reconciled = playlists.map { p -> p.copy(channels = p.channels.map { c -> if (c.number in official) c.copy(number = null) else c }) }
             mutable.update { it.copy(catalogue = catalogue, playlists = reconciled) }
+            val endpoint = repository.preferences.first().endpoint
+            val next = repository.refresh(endpoint, catalogue)
+            reconcile(next)
         }
     }
     private fun action(block: suspend () -> Unit) = viewModelScope.launch { operations.withLock {
@@ -37,10 +44,13 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     } }
     fun refresh() = action {
         val next = repository.refresh(state.value.preferences.endpoint, state.value.catalogue)
+        reconcile(next)
+    }
+    private fun reconcile(next: Catalogue) {
         val official = next.channels.mapNotNull { it.number }.toSet()
         val playlists = state.value.playlists.map { p -> p.copy(channels = p.channels.map { c -> if (c.number in official) c.copy(number = null) else c }) }
-        repository.savePlaylists(playlists)
-        mutable.update { it.copy(catalogue = next, playlists = playlists) }
+        // Public refresh never uploads or rewrites private playlist records.
+        mutable.update { it.copy(catalogue = next, playlists = playlists, error = false) }
     }
     fun setting(key: String, value: String) = action { repository.preference(key, value) }
     fun favourite(id: String) = action { repository.favourite(id) }

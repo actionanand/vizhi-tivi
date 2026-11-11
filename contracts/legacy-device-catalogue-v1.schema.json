@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://actionanand.github.io/vizhi-tivi/contracts/legacy-device-catalogue-v1.schema.json",
+  "title": "Vizhi TiVi legacy/private device catalogue v1",
+  "type": "object",
+  "required": ["schemaVersion", "revision", "channels"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+    "developmentFixture": { "type": "boolean" },
+    "channels": { "type": "array", "maxItems": 10000, "items": { "$ref": "#/$defs/channel" } }
+  },
+  "$defs": {
+    "stream": {
+      "type": "object",
+      "required": ["url", "format", "status", "permitted"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^https://" },
+        "format": { "enum": ["hls", "dash", "progressive"] },
+        "status": { "enum": ["approved", "unavailable", "unreviewed"] },
+        "permitted": { "type": "boolean" }
+      }
+    },
+    "channel": {
+      "type": "object",
+      "required": ["id", "number", "name", "languages", "country", "region", "category", "provider", "source", "streams"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$", "maxLength": 160 },
+        "number": { "type": ["integer", "null"], "minimum": 1, "maximum": 2147483647 },
+        "name": { "type": "string", "minLength": 1 },
+        "logo": { "type": "string", "pattern": "^(https://|$)" },
+        "languages": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2 } },
+        "country": { "type": "string", "minLength": 1 },
+        "region": { "type": "string" },
+        "category": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "epgId": { "type": "string" },
+        "streams": { "type": "array", "items": { "$ref": "#/$defs/stream" } }
+      },
+      "allOf": [
+        { "if": { "properties": { "languages": { "contains": { "const": "ta" } } } },
+          "then": { "properties": { "number": { "maximum": 250 } } },
+          "else": { "properties": { "number": { "minimum": 251 } } } }
+      ]
+    }
+  }
+}

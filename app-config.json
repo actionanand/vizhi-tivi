@@ -8,5 +8,6 @@
     "ta",
     "sa"
   ],
-  "dataRepository": "https://github.com/actionanand/vizhi-tivi-data"
+  "dataRepository": "https://github.com/actionanand/vizhi-tivi-data",
+  "catalogueManifestUrl": "https://actionanand.github.io/vizhi-tivi-data/manifest.json"
 }

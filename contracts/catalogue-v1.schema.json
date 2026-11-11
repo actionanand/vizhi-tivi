@@ -1,49 +1,119 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://actionanand.github.io/vizhi-tivi/contracts/catalogue-v1.schema.json",
-  "title": "Vizhi TiVi catalogue v1",
+  "$id": "https://actionanand.github.io/vizhi-tivi-data/schema/catalogue-v1.schema.json",
+  "title": "Vizhi TiVi Public Catalogue v1",
   "type": "object",
-  "required": ["schemaVersion", "revision", "channels"],
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "channels"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "revision": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
-    "developmentFixture": { "type": "boolean" },
-    "channels": { "type": "array", "maxItems": 10000, "items": { "$ref": "#/$defs/channel" } }
+    "schemaVersion": {
+      "const": 1
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/channel"
+      }
+    }
   },
   "$defs": {
-    "stream": {
-      "type": "object",
-      "required": ["url", "format", "status", "permitted"],
-      "properties": {
-        "url": { "type": "string", "pattern": "^https://" },
-        "format": { "enum": ["hls", "dash", "progressive"] },
-        "status": { "enum": ["approved", "unavailable", "unreviewed"] },
-        "permitted": { "type": "boolean" }
-      }
-    },
     "channel": {
       "type": "object",
-      "required": ["id", "number", "name", "languages", "country", "region", "category", "provider", "source", "streams"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "number",
+        "name",
+        "languages",
+        "country",
+        "region",
+        "category",
+        "broadcaster",
+        "website",
+        "logoUrl",
+        "sourceUrls",
+        "streamIds"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$", "maxLength": 160 },
-        "number": { "type": ["integer", "null"], "minimum": 1, "maximum": 2147483647 },
-        "name": { "type": "string", "minLength": 1 },
-        "logo": { "type": "string", "pattern": "^(https://|$)" },
-        "languages": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2 } },
-        "country": { "type": "string", "minLength": 1 },
-        "region": { "type": "string" },
-        "category": { "type": "string", "minLength": 1 },
-        "provider": { "type": "string", "minLength": 1 },
-        "source": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" },
-        "epgId": { "type": "string" },
-        "streams": { "type": "array", "items": { "$ref": "#/$defs/stream" } }
-      },
-      "allOf": [
-        { "if": { "properties": { "languages": { "contains": { "const": "ta" } } } },
-          "then": { "properties": { "number": { "maximum": 250 } } },
-          "else": { "properties": { "number": { "minimum": 251 } } } }
-      ]
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,99}$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{3}$"
+          }
+        },
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "enum": [
+            "general",
+            "news",
+            "sports",
+            "music",
+            "kids",
+            "entertainment",
+            "education",
+            "culture",
+            "religious",
+            "other"
+          ]
+        },
+        "broadcaster": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "website": {
+          "type": "string",
+          "format": "uri"
+        },
+        "logoUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceUrls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "minItems": 1
+        },
+        "streamIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

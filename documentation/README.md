@@ -7,3 +7,5 @@
 - [Stage 1 architecture and client behavior](stage-1.md)
 - [Stage 1 validation and change inventory](validation.md)
 - [`AGENTS.md`](../AGENTS.md) for coding agents
+
+- [Cross-repository Stage 1 integration correction](integration-validation.md)

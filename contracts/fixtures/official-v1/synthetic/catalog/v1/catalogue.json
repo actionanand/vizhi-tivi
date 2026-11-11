@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "channels": [
+    {
+      "id": "test-tamil",
+      "number": 7,
+      "name": "Synthetic test-tamil",
+      "languages": [
+        "tam",
+        "eng"
+      ],
+      "country": "IN",
+      "region": null,
+      "category": "news",
+      "broadcaster": "Synthetic fixture provider",
+      "website": "https://example.org/",
+      "logoUrl": null,
+      "sourceUrls": [
+        "https://example.org/evidence/test-tamil"
+      ],
+      "streamIds": [
+        "tam-a-trial",
+        "tam-z-verified"
+      ]
+    },
+    {
+      "id": "test-english",
+      "number": 251,
+      "name": "Synthetic test-english",
+      "languages": [
+        "eng"
+      ],
+      "country": "IN",
+      "region": null,
+      "category": "news",
+      "broadcaster": "Synthetic fixture provider",
+      "website": "https://example.org/",
+      "logoUrl": null,
+      "sourceUrls": [
+        "https://example.org/evidence/test-english"
+      ],
+      "streamIds": [
+        "eng-trial"
+      ]
+    },
+    {
+      "id": "test-sanskrit",
+      "number": 252,
+      "name": "Synthetic test-sanskrit",
+      "languages": [
+        "san"
+      ],
+      "country": "IN",
+      "region": null,
+      "category": "news",
+      "broadcaster": "Synthetic fixture provider",
+      "website": "https://example.org/",
+      "logoUrl": null,
+      "sourceUrls": [
+        "https://example.org/evidence/test-sanskrit"
+      ],
+      "streamIds": [
+        "san-verified"
+      ]
+    },
+    {
+      "id": "test-hindi",
+      "number": 253,
+      "name": "Synthetic test-hindi",
+      "languages": [
+        "hin"
+      ],
+      "country": "IN",
+      "region": null,
+      "category": "news",
+      "broadcaster": "Synthetic fixture provider",
+      "website": "https://example.org/",
+      "logoUrl": null,
+      "sourceUrls": [
+        "https://example.org/evidence/test-hindi"
+      ],
+      "streamIds": [
+        "hin-verified"
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 **உலகம் உங்கள் விழிகளில்!** · **The world before your eyes.** · **विश्वं तव नयनयोः पुरतः**
 
-Stage 1 Live TV client foundation: one native Kotlin/Jetpack Compose Android project for phones and televisions, an Angular client in `web/vizhi-tivi/`, and common brand assets. The bundled catalogue is clearly labelled development metadata with no working broadcasts.
+Stage 1 Live TV client foundation: one native Kotlin/Jetpack Compose Android project for phones and televisions, an Angular client in `web/vizhi-tivi/`, and common brand assets. Official metadata is loaded from the versioned Vizhi TiVi Data publication; development fixtures are test-only and never shown as real channels.
 
 ## Layout
 
@@ -15,7 +15,7 @@ vizhi-tivi/
 ├── scripts/                 # Bootstrap, version bump, signing, checks
 ├── documentation/           # Setup, release process, branding, limitations
 ├── .github/workflows/       # PR validation + signed mobile/TV CI
-├── app-config.json          # Identity, locales, planned data-repo URL
+├── app-config.json          # Identity, UI locales, official manifest URL
 ├── android-version.json     # main-android version
 ├── tv-version.json          # main-tv version
 ├── android-sdk.properties   # Consistent SDK configuration
@@ -48,6 +48,6 @@ The two flavors share source code but have distinct application IDs so independe
 
 ## Scope
 
-Browse, search, filter, favourite and import private HTTPS M3U playlists. Both native flavors share data, preferences and Media3 playback; TV uses Compose for TV buttons and content rails. Web uses native media or hls.js where supported. Configure an official catalogue endpoint in Settings when one is published; none is invented here.
+Browse, search, filter, favourite and import private HTTPS M3U playlists. Both native flavors share data, preferences and Media3 playback; TV uses Compose for TV buttons and content rails. Web uses native media or hls.js where supported. The default manifest is `https://actionanand.github.io/vizhi-tivi-data/manifest.json`; Settings preserves a HTTPS manifest override for testing. The current data publication is empty, so the clients show an honest empty state. A failed request retains last-known-good metadata and private imports.
 
-See [Stage 1 architecture, behavior and limitations](documentation/stage-1.md) and [validation report](documentation/validation.md). Physical phone/TV playback, 1080p remote navigation and browser visual checks remain acceptance gates; builds alone do not establish device readiness.
+See [Stage 1 architecture, behavior and limitations](documentation/stage-1.md) and [current integration validation report](documentation/integration-validation.md). Physical phone/TV playback, 1080p remote navigation and browser visual checks remain acceptance gates; builds alone do not establish device readiness.
