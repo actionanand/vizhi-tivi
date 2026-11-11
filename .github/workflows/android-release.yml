@@ -5,7 +5,6 @@ on:
     branches:
       - main-android
       - main-tv
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -29,8 +28,16 @@ jobs:
       - name: Checkout latest release branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
+
+      - name: Verify release version isolation before building
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          python3 scripts/check-release-versions.py --platform "$PLATFORM" --before "$BEFORE_SHA"
 
       - name: Set up Java
         uses: actions/setup-java@v4
