@@ -37,3 +37,22 @@ Pushes, merged PRs and fast-forward updates appear as a `push` event on the dest
 ## Fast-forward caution
 
 Because Actions commits a version bump to a release branch, `master` may not be able to fast-forward into that branch later. Merge the version commits back into your integration branch, or use an intentional merge from `master` to each release branch. Do not force-push or reset release branches simply to maintain fast-forward-only workflows. This is an inherent consequence of branch-local committed version increments.
+
+## Enforced release version isolation
+
+- Only remote pushes to `main-android` and `main-tv` start the signed release workflow.
+- Manual workflow dispatch has been removed. `master`, `feature/**`, and
+  `main-github` do not trigger automatic version bumps.
+- Pushes include merged PRs and fast-forward updates once published remotely.
+- On `main-android`, CI may increment only `android-version.json`.
+- On `main-tv`, CI may increment only `tv-version.json`.
+- Before building, CI compares the incoming commit with GitHub's `push.before`
+  commit. The target's `versionCode` must still equal its previous release
+  value; the other platform's complete version metadata must not change.
+- Target `versionName` must not decrease; a forward major/minor update
+  is possible without manually incrementing `versionCode`.
+- If merging overwrites either version file, preserve the destination
+  release branch metadata and retry the merge. A regression fails CI before
+  signing or committing any new version. Do not force-push release branches.
+- The workflow builds the exact incoming push SHA. Its final version commit
+  uses a normal non-force push and fails safely if the branch moved.
