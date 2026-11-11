@@ -1,0 +1,86 @@
+name: Vizhi TiVi Web - Build and publish gh-pages
+
+on:
+  push:
+    branches: [main-github]
+  pull_request:
+    branches: [main-github]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: vizhi-tivi-web-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Validate, build and publish Angular
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/vizhi-tivi
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web/vizhi-tivi/.nvmrc
+          cache: npm
+          cache-dependency-path: web/vizhi-tivi/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint Angular source
+        run: npm run lint
+
+      - name: Build Angular for project Pages URL
+        run: npm run build:gh
+
+      - name: Create Angular SPA 404 fallback
+        run: npm run copy-error-page
+
+      - name: Verify static output
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="dist/vizhi-tivi/browser"
+          test -s "$output/index.html"
+          test -s "$output/404.html"
+          grep -Fq '<base href="/vizhi-tivi/">' "$output/index.html"
+          echo "Verified static site: $output"
+
+      # Publishes built files, not the README or source tree.
+      # This step runs ONLY on main-github; PRs are validated but never deployed.
+      - name: Push compiled site to gh-pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./web/vizhi-tivi/dist/vizhi-tivi/browser
+          enable_jekyll: false
+          keep_files: false
+
+      # GITHUB_TOKEN-generated commits do not themselves trigger branch-based
+      # GitHub Pages builds. Request one explicitly when Pages uses gh-pages.
+      - name: Request GitHub Pages build from gh-pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          source_branch="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.source.branch // ""')"
+          if [[ "$source_branch" != "gh-pages" ]]; then
+            echo "::warning::GitHub Pages is configured for '${source_branch:-no branch}'. Set Settings > Pages > Deploy from a branch > gh-pages > /(root), then rerun this workflow."
+            exit 0
+          fi
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" >/dev/null
+          echo "Requested GitHub Pages build from gh-pages."
