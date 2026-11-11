@@ -1,0 +1,81 @@
+name: Vizhi TiVi Web - GitHub Pages
+
+on:
+  push:
+    branches: [main-github]
+  pull_request:
+    branches: [main-github]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vizhi-tivi-pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Validate and build Angular
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/vizhi-tivi
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web/vizhi-tivi/.nvmrc
+          cache: npm
+          cache-dependency-path: web/vizhi-tivi/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint Angular source
+        run: npm run lint
+
+      - name: Build Angular for GitHub Pages
+        run: npm run build:gh
+
+      - name: Create SPA 404 fallback
+        run: npm run copy-error-page
+
+      - name: Verify published site
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="dist/vizhi-tivi/browser"
+          test -s "$output/index.html"
+          test -s "$output/404.html"
+          grep -Fq '<base href="/vizhi-tivi/">' "$output/index.html"
+          echo "Angular GitHub Pages output verified: $output"
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: web/vizhi-tivi/dist/vizhi-tivi/browser
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Verify GitHub Pages configuration
+        uses: actions/configure-pages@v5
+
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
