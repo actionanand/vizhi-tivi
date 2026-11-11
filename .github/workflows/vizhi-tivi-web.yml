@@ -1,4 +1,4 @@
-name: Vizhi TiVi Web - GitHub Pages
+name: Vizhi TiVi Web - Build and publish gh-pages
 
 on:
   push:
@@ -8,19 +8,21 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
 
 concurrency:
-  group: vizhi-tivi-pages-${{ github.ref }}
+  group: vizhi-tivi-web-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Validate and build Angular
+  build-and-publish:
+    name: Validate, build and publish Angular
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: web/vizhi-tivi
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -38,13 +40,13 @@ jobs:
       - name: Lint Angular source
         run: npm run lint
 
-      - name: Build Angular for GitHub Pages
+      - name: Build Angular for project Pages URL
         run: npm run build:gh
 
-      - name: Create SPA 404 fallback
+      - name: Create Angular SPA 404 fallback
         run: npm run copy-error-page
 
-      - name: Verify published site
+      - name: Verify static output
         shell: bash
         run: |
           set -euo pipefail
@@ -52,30 +54,33 @@ jobs:
           test -s "$output/index.html"
           test -s "$output/404.html"
           grep -Fq '<base href="/vizhi-tivi/">' "$output/index.html"
-          echo "Angular GitHub Pages output verified: $output"
+          echo "Verified static site: $output"
 
-      - name: Upload Pages artifact
+      # Publishes built files, not the README or source tree.
+      # This step runs ONLY on main-github; PRs are validated but never deployed.
+      - name: Push compiled site to gh-pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
-        uses: actions/upload-pages-artifact@v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: web/vizhi-tivi/dist/vizhi-tivi/browser
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./web/vizhi-tivi/dist/vizhi-tivi/browser
+          enable_jekyll: false
+          keep_files: false
 
-  deploy:
-    name: Publish to GitHub Pages
-    needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-      - name: Verify GitHub Pages configuration
-        uses: actions/configure-pages@v5
-
-      - name: Deploy GitHub Pages artifact
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # GITHUB_TOKEN-generated commits do not themselves trigger branch-based
+      # GitHub Pages builds. Request one explicitly when Pages uses gh-pages.
+      - name: Request GitHub Pages build from gh-pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main-github'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          source_branch="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.source.branch // ""')"
+          if [[ "$source_branch" != "gh-pages" ]]; then
+            echo "::warning::GitHub Pages is configured for '${source_branch:-no branch}'. Set Settings > Pages > Deploy from a branch > gh-pages > /(root), then rerun this workflow."
+            exit 0
+          fi
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" >/dev/null
+          echo "Requested GitHub Pages build from gh-pages."
