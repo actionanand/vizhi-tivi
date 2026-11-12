@@ -89,6 +89,7 @@ describe('Shared catalogue and playlist contract', () => {
     expect(languageCode('Tamil')).toBe('ta');
     expect(languageCode('tam')).toBe('ta');
     expect(languageCode('')).toBe('und');
+    expect(languageCode('x')).toBe('und');
   });
   it('rejects unsafe schemes and userinfo', () => {
     [
@@ -97,6 +98,14 @@ describe('Shared catalogue and playlist contract', () => {
       'javascript:alert(1)',
       'https://user:secret@example.invalid/',
     ].forEach((s) => expect(safeUrl(s)).toBe(false));
+  });
+  it('rejects a serialized private catalogue exceeding the restore limit', () => {
+    const oversized = { ...fixture, channels: [{ ...fixture.channels[0], name: 'x'.repeat(5_000_000) }] };
+    expect(() => decodeCatalogue(oversized)).toThrow('Catalogue too large');
+  });
+  it('rejects duplicate detected-language metadata in a stored record', () => {
+    const invalid = { ...fixture, channels: [{ ...fixture.channels[0], sourceLanguages: ['en', 'en'] }] };
+    expect(() => decodeCatalogue(invalid)).toThrow('Invalid source languages');
   });
   it('does not expose unreviewed streams for playback', () =>
     expect(
@@ -119,5 +128,9 @@ describe('Shared catalogue and playlist contract', () => {
     );
     expect(rows[0].languages).toEqual(['ta', 'en']);
     expect(rows[0].streams[0].format).toBe('hls');
+  });
+  it('preserves a Unicode channel name after supplementary characters and quoted commas', async () => {
+    const rows = await parseM3u('#EXTM3U\n#EXTINF:-1 tvg-name="😀,📺",தமிழ், செய்தி\nhttps://example.invalid/live.m3u8', 'test');
+    expect(rows[0].name).toBe('தமிழ், செய்தி');
   });
 });

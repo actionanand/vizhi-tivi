@@ -59,7 +59,7 @@ function id(value: unknown): string {
 }
 function https(value: unknown): string {
   const s = str(value);
-  if (!/^https:\/\/[^\s\\]+$/.test(s) || !safeUrl(s) || new URL(s).hash)
+  if (!/^https:\/\/[^\s\\]+$/i.test(s) || !safeUrl(s) || new URL(s).hash)
     throw Error('Expected HTTPS URL');
   return s;
 }

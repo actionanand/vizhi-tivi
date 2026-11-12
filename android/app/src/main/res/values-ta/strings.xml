@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="recover_playlists">படிக்கக்கூடிய பட்டியல்களை மீட்டெடு</string>
+    <string name="recover_confirm">அசலைச் சாதனத்தில் சேமித்து, படிக்கக்கூடிய பதிவுகளால் சேமிப்பை மாற்றவா?</string>
+    <string name="export_original">அசல் தனிப்பட்ட சேமிப்பை ஏற்றுமதி செய்</string>
+    <string name="export_playlists">படிக்கக்கூடிய பட்டியல்களை ஏற்றுமதி செய்</string>
+    <string name="reset_language">மொழித் திருத்தத்தை மீட்டமை</string>
     <string name="tagline">உலகம் உங்கள் விழிகளில்!</string>
     <string name="home">முகப்பு</string>
     <string name="channels">நேரலை டிவி</string>
@@ -47,4 +52,24 @@
     <string name="off">முடக்கு</string>
     <string name="trial">சோதனை ஒளிபரப்பு</string>
     <string name="official_empty">அனுமதிக்கப்பட்ட சேனல்கள் இன்னும் வெளியிடப்படவில்லை.</string>
+    <string name="snapshot_unverified">சரிபார்க்கப்படவில்லை</string>
+    <string name="snapshot_saved">சேமிக்கப்பட்டது</string>
+    <string name="snapshot_recovered">மீட்டெடுக்கப்பட்டது</string>
+    <string name="snapshot_export">பிரதியை ஏற்றுமதி செய்</string>
+    <string name="snapshot_count">படிக்கக்கூடிய பட்டியல்கள்</string>
+    <string name="snapshot_failure">மீட்பு தோல்வியடைந்தது. சேமிப்பைச் சரிபார்த்து மற்றொரு மீட்புப் பிரதியை வைத்திருக்கவும்.</string>
+    <string name="audio_track">ஒலி</string>
+    <string name="subtitle_track">வசன வரிகள்</string>
+    <string name="recovery_snapshots">மீட்பு பிரதிகள்</string>
+    <string name="snapshot_valid">சரிபார்க்கப்பட்டது</string>
+    <string name="snapshot_partial">பகுதியாக மீட்கலாம்</string>
+    <string name="snapshot_invalid">கிடைக்கவில்லை அல்லது சேதமடைந்தது</string>
+    <string name="snapshot_restore">பிரதியை மீட்டெடு</string>
+    <string name="snapshot_delete">பிரதியை நீக்கு</string>
+    <string name="snapshot_delete_confirm">இந்த மீட்புப் பிரதியை நீக்கவா?</string>
+    <string name="snapshot_limit">மீட்புச் சேமிப்பு நிரம்பியுள்ளது. பழைய பிரதியை ஏற்றுமதி செய்து நீக்கவும்.</string>
+    <string name="cancel_network">இணையக் கோரிக்கையை ரத்து செய்</string>
+    <string name="network_cancelled">இணையக் கோரிக்கை ரத்து செய்யப்பட்டது. முந்தைய தரவு பாதுகாக்கப்பட்டுள்ளது.</string>
+    <string name="network_timeout">இணைப்பிற்கு நேரம் முடிந்தது. முந்தைய தரவு பாதுகாக்கப்பட்டுள்ளது.</string>
+    <string name="storage_conflict">மற்றொரு தாவலில் தனிப்பட்ட தரவு மாறியுள்ளது அல்லது இந்த உலாவியில் பாதுகாப்பான சேமிப்பு ஒருங்கிணைப்பு இல்லை. ஆதரிக்கப்படும் உலாவியில் மீண்டும் ஏற்றி முயலவும்.</string>
 </resources>

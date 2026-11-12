@@ -46,4 +46,47 @@ class DomainTest {
         assertEquals(listOf("ta", "en"), rows.single().languages)
         assertEquals("hls", rows.single().streams.single().format)
     }
+    @Test fun malformedLanguageMetadataNormalizesBeforePersistence() { assertEquals("und", languageCode("x")) }
+    @Test fun uppercaseHttpsIsAcceptedButHttpIsRejected() {
+        assertTrue(safeUrl("HTTPS://example.invalid/live"))
+        assertFalse(safeUrl("HTTP://example.invalid/live"))
+    }
+    @Test fun manualLanguageOverrideSurvivesPrivateCodecRoundTrip() {
+        val channel = c("test", number = 1).copy(country = "IN", provider = "Private", source = "Private", languageOverride = "ta", sourceLanguages = listOf("en"))
+        val root = JSONObject().put("schemaVersion", 1).put("revision", 1).put("channels", org.json.JSONArray().put(CatalogueCodec.channelJson(channel)))
+        val restored = CatalogueCodec.decode(root.toString()).channels.single()
+        assertEquals("ta", restored.languageOverride)
+        assertEquals(listOf("en"), restored.sourceLanguages)
+        assertEquals(1, restored.number)
+        root.getJSONArray("channels").getJSONObject(0).put("sourceLanguages", org.json.JSONArray().put("en").put("en"))
+        assertThrows(Exception::class.java) { CatalogueCodec.decode(root.toString()) }
+    }
+    @Test fun corruptPrivatePlaylistIsIsolatedWithoutDiscardingValidRecords() {
+        val channel = c("test", number = 1).copy(country = "IN", provider = "Private", source = "Private")
+        val good = JSONObject().put("id", "good").put("name", "Good").put("channels", org.json.JSONArray().put(CatalogueCodec.channelJson(channel)))
+        val bad = JSONObject().put("id", "bad").put("name", "Bad").put("channels", org.json.JSONArray().put(JSONObject()))
+        val raw = JSONObject().put("schemaVersion", 1).put("playlists", org.json.JSONArray().put(good).put(bad)).toString()
+        val decoded = PrivatePlaylistCodec.decode(raw)
+        assertFalse(decoded.complete)
+        assertEquals(listOf("good"), decoded.playlists.map { it.id })
+        val duplicate = JSONObject(good.toString()).put("id", "other")
+        val collision = JSONObject().put("schemaVersion", 1).put("playlists", org.json.JSONArray().put(good).put(duplicate))
+        val isolated = PrivatePlaylistCodec.decode(collision.toString())
+        assertFalse(isolated.complete)
+        assertEquals(listOf("good"), isolated.playlists.map { it.id })
+        assertThrows(Exception::class.java) { PrivatePlaylistCodec.decode(JSONObject(raw).put("schemaVersion", 2).toString()) }
+    }
+    @Test fun resetRestoresSourceLanguageAndClearsIncompatibleNumber() {
+        for ((source, expected) in listOf("tam" to "ta", "eng" to "en", "san" to "sa", "" to "und")) {
+            val raw = "#EXTM3U\n#EXTINF:-1 tvg-id=\"stable\" tvg-language=\"$source\",News\nhttps://example.invalid/live.m3u8"
+            val parsed = parseM3u(raw, "test").single()
+            val manual = if (expected == "ta") "en" else "ta"
+            val corrected = parsed.copy(languages = listOf(manual), number = if (manual == "ta") 1 else 251, languageOverride = manual)
+            val reset = resetLanguageOverride(corrected)
+            assertEquals(listOf(expected), reset.languages)
+            assertEquals(parsed.id, reset.id)
+            assertNull(reset.languageOverride)
+            assertNull(reset.number)
+        }
+    }
 }

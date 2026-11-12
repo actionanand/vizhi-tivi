@@ -21,7 +21,7 @@ BUILD_TOOLS=$(sed -n 's/^BUILD_TOOLS_VERSION=//p' android-sdk.properties)
 SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 [[ -n "$SDK_ROOT" ]] || { echo 'ANDROID_HOME or ANDROID_SDK_ROOT required for apksigner verification' >&2; exit 1; }
 "$SDK_ROOT/build-tools/$BUILD_TOOLS/apksigner" verify --verbose "$APK"
-jarsigner -verify -strict "$AAB" >/dev/null
+bash scripts/verify-aab.sh "$AAB"
 VERSION_NAME=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["versionName"])' "$VERSION_FILE")
 VERSION_CODE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["versionCode"])' "$VERSION_FILE")
 OUT="artifacts/$PLATFORM"

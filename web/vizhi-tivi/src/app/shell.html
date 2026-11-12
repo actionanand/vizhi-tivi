@@ -30,6 +30,9 @@
     @if (store.loading()) {
       <p role="status">{{ store.t('loading') }}</p>
     }
+    @if (store.storageConflict()) {
+      <p class="notice error" role="alert">{{ store.t('storage_conflict') }}</p>
+    }
     @if (store.error()) {
       <p class="notice error" role="alert">{{ store.t('operation_error') }}</p>
     }
@@ -81,6 +84,41 @@
       @if (page() === 'imported') {
         <section class="panel">
           <p>{{ store.t('private_notice') }}</p>
+          <button [disabled]="!store.data().playlists.length" (click)="exportPlaylists()">{{ store.t('export_playlists') }}</button>
+          @if (store.recoveryRequired) { <button (click)="exportOriginal()">{{ store.t('export_original') }}</button> }
+          @if (store.recoveryRequired) {
+            <button (click)="recoverDialog.set(true)">{{ store.t('recover_playlists') }}</button>
+            @if (recoverDialog()) {
+              <div role="group" [attr.aria-label]="store.t('recover_confirm')">
+                <p>{{ store.t('recover_confirm') }}</p>
+                <button (click)="store.recoverPlaylists(); recoverDialog.set(false)">{{ store.t('recover_playlists') }}</button>
+                <button (click)="recoverDialog.set(false)">{{ store.t('cancel') }}</button>
+              </div>
+            }
+          }
+          <section [attr.aria-label]="store.t('recovery_snapshots')">
+            <h2>{{ store.t('recovery_snapshots') }}</h2>
+            @if (store.snapshotError()) { <p role="alert">{{ store.t('snapshot_failure') }}</p> }
+            @if (store.snapshots().length >= 5) { <p>{{ store.t('snapshot_limit') }}</p> }
+            @for (snapshot of store.snapshots(); track snapshot.id) {
+              <div class="playlist">
+                <span>{{ snapshot.createdAt || '—' }} · {{ snapshot.byteSize }} B · v{{ snapshot.formatVersion ?? '—' }}</span>
+                <span>{{ store.t(snapshot.integrity === 'unverified' ? 'snapshot_unverified' : snapshot.integrity === 'invalid' || snapshot.compatibility === 'incompatible' ? 'snapshot_invalid' : snapshot.compatibility === 'partial' ? 'snapshot_partial' : 'snapshot_valid') }}</span>
+                <span>{{ store.t('snapshot_count') }}: {{ snapshot.recoverableCount }}</span>
+                @if (snapshot.recoveryStatus !== 'unknown') { <span>{{ store.t(snapshot.recoveryStatus === 'recovered' ? 'snapshot_recovered' : 'snapshot_saved') }}</span> }
+                <button (click)="exportSnapshot(snapshot.id)">{{ store.t('snapshot_export') }}</button>
+                <button [disabled]="store.loading() || snapshot.integrity === 'invalid' || !snapshot.recoverableCount" (click)="store.restoreSnapshot(snapshot.id)">{{ store.t('snapshot_restore') }}</button>
+                <button (click)="deleteSnapshotId.set(snapshot.id)">{{ store.t('snapshot_delete') }}</button>
+                @if (deleteSnapshotId() === snapshot.id) {
+                  <div role="group" [attr.aria-label]="store.t('snapshot_delete_confirm')">
+                    <p>{{ store.t('snapshot_delete_confirm') }}</p>
+                    <button (click)="store.deleteSnapshot(snapshot.id); deleteSnapshotId.set(null)">{{ store.t('snapshot_delete') }}</button>
+                    <button (click)="deleteSnapshotId.set(null)">{{ store.t('cancel') }}</button>
+                  </div>
+                }
+              </div>
+            }
+          </section>
           <p>{{ store.t('browser_notice') }}</p>
           <div class="import-form">
             <label
@@ -217,6 +255,9 @@
                   <option value="sa">संस्कृतम्</option>
                 </select></label
               >
+              @if (c.languageOverride && c.sourceLanguages) {
+                <button (click)="store.resetLanguage(c)">{{ store.t('reset_language') }}</button>
+              }
             }
             @if (playable(c)) {
               @if (playable(c)?.status === 'experimental') {

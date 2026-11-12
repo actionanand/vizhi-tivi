@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="recover_playlists">Recover readable playlists</string>
+    <string name="recover_confirm">Save the original locally and replace the active store with readable records?</string>
+    <string name="export_original">Export original private store</string>
+    <string name="export_playlists">Export readable playlists</string>
+    <string name="reset_language">Reset language override</string>
     <string name="tagline">The world before your eyes.</string>
     <string name="home">Home</string>
     <string name="channels">Live TV</string>
@@ -47,4 +52,24 @@
     <string name="off">Off</string>
     <string name="trial">Experimental • trial stream</string>
     <string name="official_empty">No approved channels have been published yet.</string>
+    <string name="snapshot_unverified">Not verified</string>
+    <string name="snapshot_saved">Saved</string>
+    <string name="snapshot_recovered">Recovered</string>
+    <string name="snapshot_export">Export snapshot</string>
+    <string name="snapshot_count">Readable playlists</string>
+    <string name="snapshot_failure">Recovery action failed. Check available storage and keep another recoverable snapshot.</string>
+    <string name="audio_track">Audio</string>
+    <string name="subtitle_track">Subtitles</string>
+    <string name="recovery_snapshots">Recovery snapshots</string>
+    <string name="snapshot_valid">Verified</string>
+    <string name="snapshot_partial">Partially recoverable</string>
+    <string name="snapshot_invalid">Unavailable or damaged</string>
+    <string name="snapshot_restore">Restore snapshot</string>
+    <string name="snapshot_delete">Delete snapshot</string>
+    <string name="snapshot_delete_confirm">Delete this recovery snapshot?</string>
+    <string name="snapshot_limit">Recovery storage is full. Export and delete an obsolete snapshot first.</string>
+    <string name="cancel_network">Cancel network request</string>
+    <string name="network_cancelled">Network request cancelled. Previous data is retained.</string>
+    <string name="network_timeout">Connection timed out. Previous data is retained.</string>
+    <string name="storage_conflict">Private data changed in another tab, or this browser cannot coordinate private storage. Reload and retry in a supported browser.</string>
 </resources>

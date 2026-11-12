@@ -22,6 +22,8 @@ export interface Channel {
   playlistId?: string;
   epgId?: string;
   description?: string;
+  languageOverride?: string;
+  sourceLanguages?: string[];
 }
 export interface Catalogue {
   schemaVersion: 1;
@@ -58,7 +60,7 @@ export function languageCode(value: string): string {
       ? 'en'
       : ['sanskrit', 'san', 'sa'].includes(v)
         ? 'sa'
-        : v || 'und';
+        : v.length >= 2 ? v : 'und';
 }
 export async function stableId(raw: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
@@ -78,6 +80,7 @@ function text(row: Record<string, unknown>, key: string, allowEmpty = false): st
 }
 export function decodeCatalogue(value: unknown, previous?: Catalogue): Catalogue {
   const root = object(value);
+  if (JSON.stringify(root).length > 5_000_000) throw Error('Catalogue too large');
   if (root['developmentFixture'] !== undefined && typeof root['developmentFixture'] !== 'boolean')
     throw Error('Invalid fixture flag');
   if (
@@ -139,7 +142,11 @@ export function decodeCatalogue(value: unknown, previous?: Catalogue): Catalogue
       streams,
       ...(row['epgId'] === undefined ? {} : { epgId: text(row, 'epgId', true) }),
       ...(row['description'] === undefined ? {} : { description: text(row, 'description', true) }),
+      ...(row['languageOverride'] === undefined ? {} : { languageOverride: text(row, 'languageOverride') }),
+      ...(row['sourceLanguages'] === undefined ? {} : { sourceLanguages: row['sourceLanguages'] as string[] }),
     };
+    if (c.languageOverride && !['ta', 'en', 'sa', 'und'].includes(c.languageOverride)) throw Error('Invalid language override');
+    if (row['sourceLanguages'] !== undefined && (!Array.isArray(row['sourceLanguages']) || !row['sourceLanguages'].length || new Set(row['sourceLanguages']).size !== row['sourceLanguages'].length || row['sourceLanguages'].some((l) => typeof l !== 'string' || l.length < 2))) throw Error('Invalid source languages');
     const old = previous?.channels.find((x) => x.id === id);
     if (old?.number != null && old.number !== c.number) throw Error('Published number changed');
     return c;
@@ -208,7 +215,7 @@ export async function parseM3u(raw: string, playlistId: string): Promise<Channel
       [...meta.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]),
     );
     let quoted = false;
-    const comma = [...meta].findIndex((ch) => {
+    const comma = meta.split('').findIndex((ch) => {
       if (ch === '"') quoted = !quoted;
       return ch === ',' && !quoted;
     });
@@ -224,6 +231,7 @@ export async function parseM3u(raw: string, playlistId: string): Promise<Channel
       number: null,
       name,
       languages: channelLanguages(attrs['tvg-language'] || attrs['language'] || ''),
+      sourceLanguages: channelLanguages(attrs['tvg-language'] || attrs['language'] || ''),
       country: 'Unknown',
       region: '',
       category: attrs['group-title'] || 'Imported TV',

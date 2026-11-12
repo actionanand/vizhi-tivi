@@ -41,6 +41,19 @@ describe('Foreground player lifecycle', () => {
     expect(fixture.nativeElement.textContent).toContain(fixture.componentInstance.store.t('trial'));
     fixture.destroy();
   });
+  it('localizes generic audio and subtitle controls', async () => {
+    const fixture = TestBed.createComponent(LivePlayer);
+    fixture.componentRef.setInput('channel', c);
+    await fixture.whenStable();
+    const player = fixture.componentInstance;
+    await player.store.save({ locale: 'ta' });
+    player.audio.set(['Track']);
+    player.subtitles.set(['Track']);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.textContent).toContain(player.store.t('audio_track'));
+    expect(fixture.nativeElement.textContent).toContain(player.store.t('subtitle_track'));
+    fixture.destroy();
+  });
   it('loads only after selecting a playable channel and releases on close', async () => {
     const fixture = TestBed.createComponent(LivePlayer);
     fixture.componentRef.setInput('channel', c);

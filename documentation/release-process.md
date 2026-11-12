@@ -48,7 +48,7 @@ No GitHub Release or Play Store upload is automatically created by this starter.
 
 ## Concurrency and permissions
 
-Actions runs serialize per branch; the workflow checks out latest branch head. Automatic commits require `contents: write` and branch protection/ruleset permission for `github-actions[bot]`. If branch protection blocks the push, adapt your policy to permit this bot or have the workflow create a PR instead. Do not disable essential protections solely for this.
+Actions runs serialize per branch; the workflow checks out the exact push SHA. A normal final push fails if the branch has moved. Automatic commits require `contents: write` and branch protection/ruleset permission for `github-actions[bot]`. If branch protection blocks the push, adapt your policy to permit this bot or have the workflow create a PR instead. Do not disable essential protections solely for this.
 
 ## Manual local version change
 

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { LiveStore, Locale, TextKey } from './core/store';
 import { Channel, playable } from './core/domain';
 import { LivePlayer } from './player';
@@ -17,8 +17,14 @@ export class Shell {
   readonly language = signal('');
   readonly category = signal('');
   readonly country = signal('');
-  readonly selected = signal<Channel | null>(null);
+  readonly selectedId = signal<string | null>(null);
+  readonly selected = computed(() => {
+    const channel = this.store.all().find((c) => c.id === this.selectedId());
+    return channel && playable(channel) ? channel : null;
+  });
   readonly removeId = signal<string | null>(null);
+  readonly deleteSnapshotId = signal<string | null>(null);
+  readonly recoverDialog = signal(false);
   readonly nav: TextKey[] = ['home', 'channels', 'favourites', 'imported', 'settings'];
   readonly url = signal('');
   readonly name = signal('My IPTV');
@@ -65,6 +71,9 @@ export class Shell {
       .filter((c): c is Channel => !!c),
   );
   constructor() {
+    effect(() => {
+      if (this.selectedId() && !this.selected()) this.selectedId.set(null);
+    });
     void this.store.initial();
   }
   value(event: Event): string {
@@ -88,14 +97,40 @@ export class Shell {
   play(c: Channel, event: Event): void {
     if (playable(c)) {
       this.openerId = (event.currentTarget as HTMLElement).id;
-      this.selected.set(c);
+      this.selectedId.set(c.id);
       this.store.watched(c.id);
       setTimeout(() => this.document.getElementById('player-back')?.focus());
     }
   }
   close(): void {
-    this.selected.set(null);
+    this.selectedId.set(null);
     setTimeout(() => this.document.getElementById(this.openerId)?.focus());
+  }
+  exportPlaylists(): void {
+    const data = JSON.stringify({ schemaVersion: 1, playlists: this.store.data().playlists });
+    this.downloadPrivate(data, 'vizhi-tivi-playlists.json');
+  }
+  exportOriginal(): void {
+    const data = this.store.originalPrivateStore();
+    if (data !== null) this.downloadPrivate(data, 'vizhi-tivi-original.json');
+  }
+  exportSnapshot(id: string): void {
+    const raw = this.store.snapshotRaw(id);
+    if (raw !== null) this.downloadPrivate(raw, 'vizhi-tivi-recovery.json');
+  }
+  private downloadPrivate(data: string, name: string): void {
+    let url: string | undefined;
+    try {
+      url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+      const link = this.document.createElement('a');
+      link.href = url;
+      link.download = name;
+      link.click();
+    } catch {
+      this.store.snapshotError.set(true);
+    } finally {
+      if (url) URL.revokeObjectURL(url);
+    }
   }
   async file(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;

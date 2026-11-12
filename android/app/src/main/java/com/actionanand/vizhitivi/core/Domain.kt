@@ -10,7 +10,7 @@ data class Channel(
     val country: String = "", val region: String = "", val category: String = "Imported TV",
     val provider: String = "", val source: String = "", val logo: String = "",
     val streams: List<Stream> = emptyList(), val playlistId: String? = null,
-    val epgId: String = "", val description: String = ""
+    val epgId: String = "", val description: String = "", val languageOverride: String? = null, val sourceLanguages: List<String>? = null
 ) {
     val tamil get() = "ta" in languages
     val playable get() = streams.firstOrNull { safeUrl(it.url) && it.permitted && it.status in listOf("approved", "verified") }
@@ -23,7 +23,7 @@ data class Playlist(val id: String, val name: String, val channels: List<Channel
 
 fun safeUrl(raw: String): Boolean = runCatching {
     val uri = URI(raw)
-    uri.scheme == "https" && !uri.host.isNullOrBlank() && uri.rawUserInfo == null
+    uri.scheme.equals("https", ignoreCase = true) && !uri.host.isNullOrBlank() && uri.rawUserInfo == null
 }.getOrDefault(false)
 fun stableId(raw: String): String = MessageDigest.getInstance("SHA-256")
     .digest(raw.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
@@ -31,9 +31,13 @@ fun languageCode(raw: String): String = when (raw.trim().lowercase()) {
     "tamil", "tam", "தமிழ்", "ta" -> "ta"
     "english", "eng", "en" -> "en"
     "sanskrit", "san", "sa" -> "sa"
-    else -> raw.trim().lowercase().ifBlank { "und" }
+    else -> raw.trim().lowercase().takeIf { it.length >= 2 } ?: "und"
 }
 fun channelLanguages(raw: String): List<String> = raw.split(',', ';').map(::languageCode).distinct()
+fun resetLanguageOverride(c: Channel): Channel {
+    val detected = c.sourceLanguages ?: return c
+    return c.copy(languages = detected, languageOverride = null, number = if (("ta" in c.languages) == ("ta" in detected)) c.number else null)
+}
 
 /** Full snapshots only: removed IDs vacate slots; surviving IDs keep assignments. */
 fun allocate(channels: List<Channel>, previous: Map<String, Int> = emptyMap(), reserved: Set<Int> = emptySet()): List<Channel> {
@@ -88,7 +92,7 @@ fun parseM3u(text: String, playlistId: String): List<Channel> {
             country = "Unknown", provider = "Private user import",
             category = attrs["group-title"].orEmpty().ifBlank { "Imported TV" }, logo = attrs["tvg-logo"].orEmpty().takeIf(::safeUrl).orEmpty(),
             streams = listOf(Stream(line, format, "approved", true)), playlistId = playlistId,
-            source = "Private user import", epgId = attrs["tvg-id"].orEmpty()
+            source = "Private user import", epgId = attrs["tvg-id"].orEmpty(), sourceLanguages = channelLanguages(attrs["tvg-language"] ?: attrs["language"].orEmpty())
         )
     }
     require(records.isNotEmpty()) { "No supported HTTPS channels in playlist" }

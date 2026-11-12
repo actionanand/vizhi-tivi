@@ -13,6 +13,18 @@ describe('Live TV navigation', () => {
     vi.spyOn(LiveStore.prototype, 'initial').mockResolvedValue();
   });
   afterEach(() => vi.restoreAllMocks());
+  it('reports an export failure without changing the private store', async () => {
+    const store = new LiveStore();
+    await store.importText('#EXTM3U\n#EXTINF:-1 tvg-id="stable",News\nhttps://example.invalid/live.m3u8', 'file:export', 'Test');
+    const before = JSON.stringify(store.data());
+    TestBed.configureTestingModule({ providers: [{ provide: LiveStore, useValue: store }] });
+    const fixture = TestBed.createComponent(Shell);
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => { throw Error('unavailable'); });
+    fixture.componentInstance.exportPlaylists();
+    expect(store.snapshotError()).toBe(true);
+    expect(JSON.stringify(store.data())).toBe(before);
+    fixture.destroy();
+  });
   it('shows an honest empty official catalogue without development channels', async () => {
     const store = new LiveStore();
     store.catalogue.set(await decodePublication(publications.empty.files));
@@ -76,10 +88,33 @@ describe('Live TV navigation', () => {
     expect(fixture.nativeElement.querySelector('.play')).toBeNull();
     fixture.destroy();
   });
+  it('rebinds a selected channel and closes playback when it is removed', async () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined);
+    vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined);
+    const store = new LiveStore();
+    const catalogue = await decodePublication(publications.synthetic.files);
+    store.catalogue.set(catalogue);
+    TestBed.configureTestingModule({ providers: [{ provide: LiveStore, useValue: store }] });
+    const fixture = TestBed.createComponent(Shell);
+    await fixture.whenStable();
+    const channel = catalogue.channels[0];
+    fixture.componentInstance.play(channel, { currentTarget: { id: 'test' } } as unknown as Event);
+    await fixture.whenStable();
+    const updated = { ...channel, streams: [{ ...channel.streams[0], url: 'https://example.invalid/replaced', status: 'experimental' as const }] };
+    store.catalogue.set({ ...catalogue, channels: [updated] });
+    await fixture.whenStable();
+    expect(fixture.componentInstance.selected()).toEqual(updated);
+    store.catalogue.set({ ...catalogue, channels: [] });
+    await fixture.whenStable();
+    expect(fixture.componentInstance.selected()).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-player')).toBeNull();
+    fixture.destroy();
+  });
   it('filters by search and navigates to favourites', async () => {
     const store = new LiveStore();
     store.catalogue.set(decodeCatalogue(fixtureData));
-    store.toggleFavourite('demo.tamil');
+    await store.toggleFavourite('demo.tamil');
     TestBed.configureTestingModule({ providers: [{ provide: LiveStore, useValue: store }] });
     const fixture = TestBed.createComponent(Shell);
     await fixture.whenStable();

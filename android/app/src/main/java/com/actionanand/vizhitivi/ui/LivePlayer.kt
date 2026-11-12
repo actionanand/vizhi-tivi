@@ -31,10 +31,10 @@ fun LivePlayer(channel: Channel, close: () -> Unit) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val stream = channel.playable ?: return
-    var error by remember(channel.id) { mutableStateOf(false) }
-    var buffering by remember(channel.id) { mutableStateOf(true) }
+    var error by remember(channel.id, stream) { mutableStateOf(false) }
+    var buffering by remember(channel.id, stream) { mutableStateOf(true) }
     val view = remember { PlayerView(context).apply { setShowSubtitleButton(true); setShowNextButton(false); setShowPreviousButton(false) } }
-    val player = remember(channel.id) {
+    val player = remember(channel.id, stream) {
         ExoPlayer.Builder(context).setMediaSourceFactory(DefaultMediaSourceFactory(context).setLoadErrorHandlingPolicy(DefaultLoadErrorHandlingPolicy(2))).build().apply {
             setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
             setHandleAudioBecomingNoisy(true)

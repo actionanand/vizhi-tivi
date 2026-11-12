@@ -29,6 +29,13 @@ async function changed(
 const rows = (root: Record<string, unknown>, field: string): Record<string, unknown>[] =>
   root[field] as Record<string, unknown>[];
 describe('Official data repository v1 integration', () => {
+  it('accepts an uppercase HTTPS scheme from the publisher', async () => {
+    const files = await changed(PUBLIC_PATHS.streams, (root) => {
+      rows(root, 'streams')[0]['url'] = 'HTTPS://example.com/live';
+    });
+    const result = await decodePublication(files);
+    expect(result.channels.flatMap((channel) => channel.streams).some((stream) => stream.url === 'HTTPS://example.com/live')).toBe(true);
+  });
   it('accepts the exact empty gh-pages publication and its digest', async () => {
     const c = await decodePublication(vectors.empty.files);
     expect(c.channels).toEqual([]);

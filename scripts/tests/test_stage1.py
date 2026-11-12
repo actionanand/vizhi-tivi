@@ -46,6 +46,11 @@ class StageOneConfigurationTests(unittest.TestCase):
         self.assertIn('npm test -- --watch=false',workflow)
         self.assertNotIn('exit 0',workflow)
 
+    def test_web_publish_runs_tests_before_publishing(self):
+        workflow = (ROOT/'.github/workflows/vizhi-tivi-web.yml').read_text()
+        self.assertLess(workflow.index('npm test -- --watch=false'), workflow.index('Push compiled site to gh-pages'))
+        self.assertIn("github.ref == 'refs/heads/main-github'", workflow)
+
     def test_tv_hardware_declaration_is_flavor_specific(self):
         android = '{http://schemas.android.com/apk/res/android}'
         main = ET.parse(ROOT/'android/app/src/main/AndroidManifest.xml').getroot()

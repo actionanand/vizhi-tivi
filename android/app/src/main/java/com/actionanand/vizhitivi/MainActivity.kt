@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
             val state = vm.state.collectAsStateWithLifecycle().value
             val config = Configuration(LocalConfiguration.current).apply { setLocale(Locale.forLanguageTag(state.preferences.locale)) }
             val localized = remember(state.preferences.locale) { createConfigurationContext(config) }
-            CompositionLocalProvider(LocalContext provides localized, LocalConfiguration provides config) {
+            CompositionLocalProvider(LocalContext provides localized, LocalConfiguration provides config, LocalActivityResultRegistryOwner provides this@MainActivity) {
                 LiveApp(vm, state, BuildConfig.FLAVOR == "tv")
             }
         }

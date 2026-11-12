@@ -9,6 +9,7 @@
   --muted: #b0c2ca;
   --border: #526773;
   --accent: #70e5ca;
+  --error: #ffb7b3;
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100dvh;
@@ -22,6 +23,7 @@
   --muted: #405b68;
   --border: #6b818c;
   --accent: #08705d;
+  --error: #9b1c1c;
 }
 * {
   box-sizing: border-box;
@@ -126,7 +128,7 @@ h2 {
   line-height: 1.6;
 }
 .error {
-  color: #ffb7b3;
+  color: var(--error);
 }
 .filters {
   display: flex;
@@ -297,6 +299,7 @@ label {
 @media (prefers-color-scheme: light) {
   .layout.system {
     --bg: #f4f7f8;
+    --error: #9b1c1c;
     --panel: #fff;
     --text: #142730;
     --muted: #405b68;

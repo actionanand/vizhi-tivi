@@ -39,7 +39,7 @@ android {
         targetSdk = sdk.getProperty("TARGET_SDK_VERSION").toInt()
         versionCode = versionCodeFrom(androidVersion)
         versionName = versionNameFrom(androidVersion)
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.actionanand.vizhitivi.PlatformInstrumentation"
         resValue("string", "app_name", config["appName"] as String)
         buildConfigField("String", "CATALOGUE_MANIFEST_URL", groovy.json.JsonOutput.toJson(config["catalogueManifestUrl"]))
     }
@@ -87,6 +87,7 @@ android {
     buildFeatures { compose = true; buildConfig = true; resValues = true }
     bundle { language { enableSplit = false } }
     sourceSets.getByName("test").resources.directories.add("../../contracts/fixtures")
+    sourceSets.getByName("androidTest").assets.directories.add("../../contracts/fixtures/official-v1/synthetic")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

@@ -52,7 +52,7 @@ import type Hls from 'hls.js';
     <button (click)="fullscreen()">{{ store.t('fullscreen') }}</button>
     @if (audio().length) {
       <label
-        >{{ store.t('language')
+        >{{ store.t('audio_track')
         }}<select (change)="setAudio($event)">
           @for (a of audio(); track $index) {
             <option [value]="$index">{{ a }}</option>
@@ -62,7 +62,7 @@ import type Hls from 'hls.js';
     }
     @if (subtitles().length) {
       <label
-        >CC<select (change)="setSubtitle($event)">
+        >{{ store.t('subtitle_track') }}<select (change)="setSubtitle($event)">
           <option value="-1">{{ store.t('off') }}</option>
           @for (s of subtitles(); track $index) {
             <option [value]="$index">{{ s }}</option>
@@ -161,8 +161,8 @@ export class LivePlayer {
             hls.loadSource(stream.url);
             hls.attachMedia(element);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-              this.audio.set(hls.audioTracks.map((t) => t.name || t.lang || 'Audio'));
-              this.subtitles.set(hls.subtitleTracks.map((t) => t.name || t.lang || 'CC'));
+              this.audio.set(hls.audioTracks.map((t) => t.name || t.lang || this.store.t('audio_track')));
+              this.subtitles.set(hls.subtitleTracks.map((t) => t.name || t.lang || this.store.t('subtitle_track')));
               play();
             });
             hls.on(Hls.Events.ERROR, (_, data) => {

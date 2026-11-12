@@ -37,10 +37,17 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
     var restoreId by rememberSaveable { mutableStateOf<String?>(null) }
     var urlDialog by remember { mutableStateOf(false) }
     var remove by remember { mutableStateOf<Playlist?>(null) }
+    var recoverDialog by remember { mutableStateOf(false) }
+    var snapshotDialog by remember { mutableStateOf(false) }
+    var deleteSnapshot by remember { mutableStateOf<String?>(null) }
+    var exportSnapshot by rememberSaveable { mutableStateOf<String?>(null) }
     val browseState = rememberSaveableStateHolder()
     val all = state.catalogue.channels + state.playlists.flatMap { it.channels }
     val active = all.find { it.id == selected }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let { vm.importFile(it) } }
+    val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> uri?.let { vm.exportFile(it) } }
+    val originalExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> uri?.let { vm.exportOriginal(it) } }
+    val snapshotExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> uri?.let { target -> exportSnapshot?.let { vm.exportSnapshot(target, it) } }; exportSnapshot = null }
     val dark = state.preferences.theme == "dark" || (state.preferences.theme == "system" && isSystemInDarkTheme())
     val colours = if (!dark) lightColorScheme() else darkColorScheme(primary = Color(0xFF70E5CA), background = Color(0xFF101921), surface = Color(0xFF192631))
     MaterialTheme(colorScheme = colours) {
@@ -61,7 +68,9 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                         }
                     }
                     if (state.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                    if (state.error) Text(stringResource(R.string.operation_error), color = MaterialTheme.colorScheme.error)
+                    if (state.networkBusy) Action(stringResource(R.string.cancel_network), isTv) { vm.cancelNetwork() }
+                    if (state.networkOutcome == NetworkOutcome.CANCELLED) Text(stringResource(R.string.network_cancelled))
+                    if (state.error) Text(stringResource(if (state.networkOutcome == NetworkOutcome.TIMED_OUT) R.string.network_timeout else R.string.operation_error), color = MaterialTheme.colorScheme.error)
                     if (page == "settings") {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             item { Text(stringResource(R.string.ui_language)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -74,15 +83,19 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                                 var endpoint by remember(state.preferences.endpoint) { mutableStateOf(state.preferences.endpoint) }
                                 OutlinedTextField(endpoint, { endpoint = it }, label = { Text(stringResource(R.string.endpoint)) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                                 Action(stringResource(R.string.save), isTv) { vm.setting("endpoint", endpoint) }
-                                Action(stringResource(R.string.refresh), isTv, enabled = state.preferences.endpoint.isNotEmpty() && !state.loading) { vm.refresh() }
+                                Action(stringResource(R.string.refresh), isTv, enabled = state.preferences.endpoint.isNotEmpty() && !state.networkBusy) { vm.refresh() }
                             }
                             item { Text(stringResource(R.string.private_notice)); Action(stringResource(R.string.local_numbers) + ": " + stringResource(if (state.preferences.localTamilNumbers) R.string.on else R.string.off), isTv) { vm.setting("localTamil", (!state.preferences.localTamilNumbers).toString()) } }
                         }
                     } else {
                         if (page == "imported") {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Action(stringResource(R.string.import_url), isTv, enabled = !state.loading) { urlDialog = true }
-                                Action(stringResource(R.string.import_file), isTv, enabled = !state.loading) { runCatching { picker.launch(arrayOf("audio/*", "application/*", "text/*")) }.onFailure { vm.reportError() } }
+                                Action(stringResource(R.string.import_url), isTv, enabled = !state.networkBusy) { urlDialog = true }
+                                Action(stringResource(R.string.import_file), isTv, enabled = !state.localBusy) { runCatching { picker.launch(arrayOf("audio/*", "application/*", "text/*")) }.onFailure { vm.reportError() } }
+                                Action(stringResource(R.string.export_playlists), isTv, enabled = !state.localBusy && state.playlists.isNotEmpty()) { runCatching { exporter.launch("vizhi-tivi-playlists.json") }.onFailure { vm.reportError() } }
+                                if (state.recoveryRequired || state.recoveryBackupAvailable) Action(stringResource(R.string.export_original), isTv, enabled = !state.localBusy) { runCatching { originalExporter.launch("vizhi-tivi-original.json") }.onFailure { vm.reportError() } }
+                                if (state.recoveryRequired) Action(stringResource(R.string.recover_playlists), isTv, enabled = !state.localBusy) { recoverDialog = true }
+                                if (state.recoverySnapshots.isNotEmpty()) Action(stringResource(R.string.recovery_snapshots), isTv) { snapshotDialog = true }
                             }
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) { items(state.playlists, key = { it.id }) { p -> Action("${p.name} (${p.channels.size}) · " + stringResource(R.string.remove), isTv) { remove = p } } }
                             Text(stringResource(R.string.private_notice))
@@ -120,6 +133,25 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                 }, confirmButton = { Action(stringResource(R.string.save), isTv, enabled = safeUrl(url)) { urlDialog = false; vm.importUrl(url) } }, dismissButton = { Action(stringResource(R.string.cancel), isTv) { urlDialog = false } })
             }
             remove?.let { p -> AlertDialog(onDismissRequest = { remove = null }, title = { Text(stringResource(R.string.remove_confirm)) }, text = { Text(p.name) }, confirmButton = { Action(stringResource(R.string.remove), isTv) { remove = null; vm.removePlaylist(p.id) } }, dismissButton = { Action(stringResource(R.string.cancel), isTv) { remove = null } }) }
+            if (recoverDialog) AlertDialog(onDismissRequest = { recoverDialog = false }, title = { Text(stringResource(R.string.recover_playlists)) }, text = { Text(stringResource(R.string.recover_confirm)) }, confirmButton = { Action(stringResource(R.string.recover_playlists), isTv) { recoverDialog = false; vm.recoverPlaylists() } }, dismissButton = { Action(stringResource(R.string.cancel), isTv) { recoverDialog = false } })
+            if (snapshotDialog) AlertDialog(onDismissRequest = { snapshotDialog = false }, title = { Text(stringResource(R.string.recovery_snapshots)) }, text = {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(state.recoverySnapshots, key = { it.id }) { snapshot ->
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("${java.text.DateFormat.getDateTimeInstance().format(java.util.Date(snapshot.createdAt))} · ${snapshot.size} B · v${snapshot.formatVersion ?: "—"}")
+                            Text(stringResource(when { snapshot.integrity == "invalid" -> R.string.snapshot_invalid; snapshot.integrity == "unverified" -> R.string.snapshot_unverified; !snapshot.complete -> R.string.snapshot_partial; else -> R.string.snapshot_valid }))
+                            Text(stringResource(R.string.snapshot_count) + ": " + snapshot.recoverableCount)
+                            Text(stringResource(if (snapshot.status == "restored") R.string.snapshot_recovered else R.string.snapshot_saved))
+                            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Action(stringResource(R.string.snapshot_export), isTv) { exportSnapshot = snapshot.id; runCatching { snapshotExporter.launch("vizhi-tivi-recovery.json") }.onFailure { vm.reportError() } }
+                                Action(stringResource(R.string.snapshot_restore), isTv, enabled = snapshot.integrity != "invalid" && snapshot.recoverableCount > 0 && !state.localBusy) { snapshotDialog = false; vm.restoreSnapshot(snapshot.id) }
+                                Action(stringResource(R.string.snapshot_delete), isTv) { deleteSnapshot = snapshot.id }
+                            }
+                        }
+                    }
+                }
+            }, confirmButton = { Action(stringResource(R.string.cancel), isTv) { snapshotDialog = false } })
+            deleteSnapshot?.let { id -> AlertDialog(onDismissRequest = { deleteSnapshot = null }, title = { Text(stringResource(R.string.snapshot_delete_confirm)) }, confirmButton = { Action(stringResource(R.string.snapshot_delete), isTv) { deleteSnapshot = null; vm.deleteSnapshot(id) } }, dismissButton = { Action(stringResource(R.string.cancel), isTv) { deleteSnapshot = null } }) }
         }
     }
 }
@@ -142,8 +174,9 @@ private fun ChannelCard(c: Channel, vm: LiveViewModel, state: LiveState, tv: Boo
                 if (c.playable != null) Action(stringResource(R.string.play), tv) { play(c) }
             }
             if (c.playlistId != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("ta", "en", "und").forEach { l -> Action(l, tv, c.languages == listOf(l)) { vm.correctLanguage(c, l) } }
+                listOf("ta", "en", "sa", "und").forEach { l -> Action(l, tv, c.languages == listOf(l)) { vm.correctLanguage(c, l) } }
             }
+            if (c.playlistId != null && c.languageOverride != null && c.sourceLanguages != null) Action(stringResource(R.string.reset_language), tv) { vm.resetLanguage(c) }
         }
     }
 }

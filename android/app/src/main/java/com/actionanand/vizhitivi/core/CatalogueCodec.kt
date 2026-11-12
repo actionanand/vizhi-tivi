@@ -35,8 +35,10 @@ object CatalogueCodec {
                 require(s.get("permitted") is Boolean)
                 Stream(url, format, status, s.getBoolean("permitted"))
             } }
+            val overrideCode = if (row.has("languageOverride") && !row.isNull("languageOverride")) row.getString("languageOverride").also { require(it in listOf("ta", "en", "sa", "und")) } else null
+            val sourceLanguages = if (row.has("sourceLanguages")) row.getJSONArray("sourceLanguages").let { a -> (0 until a.length()).map { a.getString(it).also { s -> require(s.length >= 2) } }.also { require(it.isNotEmpty() && it.distinct().size == it.size) } } else null
             Channel(id, number, required("name"), langs, required("country"), row.getString("region"), required("category"),
-                required("provider"), required("source"), logo, streams, epgId = row.optString("epgId"), description = row.optString("description"))
+                required("provider"), required("source"), logo, streams, epgId = row.optString("epgId"), description = row.optString("description"), languageOverride = overrideCode, sourceLanguages = sourceLanguages)
         }
         // Reject changed published assignments for surviving IDs rather than silently rewriting them.
         previous?.channels?.associateBy { it.id }?.let { old -> channels.forEach { c ->
@@ -51,6 +53,8 @@ object CatalogueCodec {
         put("languages", JSONArray(c.languages)); put("country", c.country); put("region", c.region)
         put("category", c.category); put("provider", c.provider); put("source", c.source); put("logo", c.logo)
         put("epgId", c.epgId); put("description", c.description)
+        c.languageOverride?.let { put("languageOverride", it) }
+        c.sourceLanguages?.let { put("sourceLanguages", JSONArray(it)) }
         put("streams", JSONArray(c.streams.map { s -> JSONObject().apply {
             put("url", s.url); put("format", s.format); put("status", s.status); put("permitted", s.permitted)
         } }))
