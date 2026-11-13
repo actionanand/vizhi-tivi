@@ -128,7 +128,7 @@
               >{{ store.t('import_file')
               }}<input
                 type="file"
-                accept=".m3u,.m3u8,audio/x-mpegurl"
+                accept=".m3u,.m3u8,.vztv,audio/x-mpegurl,application/json"
                 (change)="file($event)"
                 [disabled]="store.loading()"
             /></label>
