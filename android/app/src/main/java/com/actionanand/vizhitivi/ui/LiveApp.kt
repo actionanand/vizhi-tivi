@@ -105,7 +105,7 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                         val base = when (page) { "imported" -> all.filter { it.playlistId != null }; "favourites" -> all.filter { it.id in state.preferences.favourites }; else -> state.catalogue.channels }
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             item { Action(stringResource(R.string.all), isTv) { language = ""; category = ""; country = "" } }
-                            items(base.flatMap { it.languages }.distinct().sorted()) { l -> Action(l, isTv, language == l) { language = if (language == l) "" else l } }
+                            items(base.flatMap { it.languages }.distinct().sorted()) { l -> Action(displayLanguage(l, state.preferences.locale), isTv, language == l) { language = if (language == l) "" else l } }
                             items(base.map { it.category }.distinct().sorted()) { c -> Action(c, isTv, category == c) { category = if (category == c) "" else c } }
                             items(base.map { it.country }.filter { it.isNotEmpty() }.distinct().sorted()) { c -> Action(c, isTv, country == c) { country = if (country == c) "" else c } }
                         }
@@ -165,7 +165,7 @@ private fun ChannelCard(c: Channel, vm: LiveViewModel, state: LiveState, tv: Boo
             AsyncImage(model = c.logo.takeIf(::safeUrl), contentDescription = null, placeholder = painterResource(R.drawable.app_icon), error = painterResource(R.drawable.app_icon), fallback = painterResource(R.drawable.app_icon), modifier = Modifier.size(64.dp))
             Text(c.number?.toString()?.padStart(3, '0') ?: "—", color = MaterialTheme.colorScheme.primary)
             Text(c.name, style = MaterialTheme.typography.titleLarge)
-            Text("${c.languages.joinToString()} · ${c.category}")
+            Text("${c.languages.joinToString { displayLanguage(it, state.preferences.locale) }} · ${c.category}")
             if (c.playlistId != null) Text(stringResource(R.string.imported))
             if (c.playable == null) Text(stringResource(R.string.unavailable))
             if (c.trial) Text(stringResource(R.string.trial), color = MaterialTheme.colorScheme.primary)
@@ -174,7 +174,7 @@ private fun ChannelCard(c: Channel, vm: LiveViewModel, state: LiveState, tv: Boo
                 if (c.playable != null) Action(stringResource(R.string.play), tv) { play(c) }
             }
             if (c.playlistId != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("ta", "en", "sa", "und").forEach { l -> Action(l, tv, c.languages == listOf(l)) { vm.correctLanguage(c, l) } }
+                listOf("ta", "en", "hi", "ml", "te", "kn", "si", "sa", "bn", "mr", "pa", "gu", "ur", "und").forEach { l -> Action(displayLanguage(l, state.preferences.locale), tv, c.languages == listOf(l)) { vm.correctLanguage(c, l) } }
             }
             if (c.playlistId != null && c.languageOverride != null && c.sourceLanguages != null) Action(stringResource(R.string.reset_language), tv) { vm.resetLanguage(c) }
         }
