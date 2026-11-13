@@ -51,6 +51,7 @@
   "favourite": "Favourite",
   "unfavourite": "Unfavourite",
   "back": "Back",
+  "next": "Next",
   "retry": "Retry",
   "operation_error": "Unable to complete the operation. Check the URL, connection or file. Previous data is retained.",
   "playback_error": "Playback failed. Check connectivity and stream/device compatibility, then retry.",
