@@ -22,7 +22,7 @@ class VztvCodecTest {
         .put("format", "app.vizhi-tivi.private-channel-collection")
         .put("schemaVersion", 1)
         .put("collection", JSONObject().put("visibility", "private"))
-        .put("channels", JSONArray().apply { channels.forEach(::put) }).toString()
+        .put("channels", JSONArray().apply { channels.forEach { put(it) } }).toString()
 
     @Test fun supportsPrivateVztvMetadataAndPlayableStreams() {
         val rows = parseVztv(pack(channel()), "playlist")
