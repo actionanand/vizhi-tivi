@@ -208,9 +208,9 @@
       </section>
       @if (pageCount() > 1) {
         <nav class="actions" [attr.aria-label]="store.t('channels')">
-          <button [disabled]="pageIndex() === 0" (click)="pageIndex.update(n => Math.max(0, n - 1))" [attr.aria-label]="store.t('back')">←</button>
+          <button [disabled]="pageIndex() === 0" (click)="previousPage()" [attr.aria-label]="store.t('back')">←</button>
           <span>{{ pageIndex() + 1 }} / {{ pageCount() }} · {{ shown().length }}</span>
-          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="pageIndex.update(n => Math.min(pageCount() - 1, n + 1))" [attr.aria-label]="store.t('next')">→</button>
+          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="nextPage()" [attr.aria-label]="store.t('next')">→</button>
         </nav>
       }
       <div class="grid">
@@ -283,9 +283,9 @@
       </div>
       @if (pageCount() > 1) {
         <nav class="actions" [attr.aria-label]="store.t('channels')">
-          <button [disabled]="pageIndex() === 0" (click)="pageIndex.update(n => Math.max(0, n - 1))" [attr.aria-label]="store.t('back')">←</button>
+          <button [disabled]="pageIndex() === 0" (click)="previousPage()" [attr.aria-label]="store.t('back')">←</button>
           <span>{{ pageIndex() + 1 }} / {{ pageCount() }} · {{ shown().length }}</span>
-          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="pageIndex.update(n => Math.min(pageCount() - 1, n + 1))" [attr.aria-label]="store.t('next')">→</button>
+          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="nextPage()" [attr.aria-label]="store.t('next')">→</button>
         </nav>
       }
     }
