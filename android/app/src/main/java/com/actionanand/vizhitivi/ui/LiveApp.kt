@@ -91,7 +91,7 @@ fun LiveApp(vm: LiveViewModel, state: LiveState, isTv: Boolean) {
                         if (page == "imported") {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Action(stringResource(R.string.import_url), isTv, enabled = !state.networkBusy) { urlDialog = true }
-                                Action(stringResource(R.string.import_file), isTv, enabled = !state.localBusy) { runCatching { picker.launch(arrayOf("audio/*", "application/*", "text/*")) }.onFailure { vm.reportError() } }
+                                Action(stringResource(R.string.import_file), isTv, enabled = !state.localBusy) { runCatching { picker.launch(arrayOf("audio/*", "application/*", "text/*", "*/*")) }.onFailure { vm.reportError() } }
                                 Action(stringResource(R.string.export_playlists), isTv, enabled = !state.localBusy && state.playlists.isNotEmpty()) { runCatching { exporter.launch("vizhi-tivi-playlists.json") }.onFailure { vm.reportError() } }
                                 if (state.recoveryRequired || state.recoveryBackupAvailable) Action(stringResource(R.string.export_original), isTv, enabled = !state.localBusy) { runCatching { originalExporter.launch("vizhi-tivi-original.json") }.onFailure { vm.reportError() } }
                                 if (state.recoveryRequired) Action(stringResource(R.string.recover_playlists), isTv, enabled = !state.localBusy) { recoverDialog = true }
