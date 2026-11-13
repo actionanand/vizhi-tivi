@@ -83,6 +83,12 @@ export class Shell {
     });
     void this.store.initial();
   }
+  previousPage(): void {
+    this.pageIndex.set(Math.max(0, this.pageIndex() - 1));
+  }
+  nextPage(): void {
+    this.pageIndex.set(Math.min(this.pageCount() - 1, this.pageIndex() + 1));
+  }
   value(event: Event): string {
     return (event.target as HTMLInputElement).value;
   }
