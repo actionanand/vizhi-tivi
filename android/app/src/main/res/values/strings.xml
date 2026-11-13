@@ -36,6 +36,7 @@
     <string name="favourite">Favourite</string>
     <string name="unfavourite">Unfavourite</string>
     <string name="back">Back</string>
+    <string name="next">Next</string>
     <string name="retry">Retry</string>
     <string name="operation_error">Unable to complete the operation. Check the URL, connection or file. Previous data is retained.</string>
     <string name="playback_error">Playback failed. Check connectivity and stream/device compatibility, then retry.</string>

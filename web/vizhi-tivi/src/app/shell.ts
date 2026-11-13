@@ -51,6 +51,8 @@ export class Shell {
   readonly countries = computed(() =>
     [...new Set(this.base().map((c) => c.country))].filter(Boolean).sort(),
   );
+  readonly pageIndex = signal(0);
+  readonly pageSize = 80;
   readonly shown = computed(() =>
     this.base()
       .filter(
@@ -64,6 +66,11 @@ export class Shell {
         (a, b) => (a.number ?? Infinity) - (b.number ?? Infinity) || a.name.localeCompare(b.name),
       ),
   );
+  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.shown().length / this.pageSize)));
+  readonly shownPage = computed(() => {
+    const index = Math.min(this.pageIndex(), this.pageCount() - 1);
+    return this.shown().slice(index * this.pageSize, (index + 1) * this.pageSize);
+  });
   readonly recent = computed(() =>
     this.store
       .data()
@@ -75,6 +82,12 @@ export class Shell {
       if (this.selectedId() && !this.selected()) this.selectedId.set(null);
     });
     void this.store.initial();
+  }
+  previousPage(): void {
+    this.pageIndex.set(Math.max(0, this.pageIndex() - 1));
+  }
+  nextPage(): void {
+    this.pageIndex.set(Math.min(this.pageCount() - 1, this.pageIndex() + 1));
   }
   value(event: Event): string {
     return (event.target as HTMLInputElement).value;
@@ -88,6 +101,7 @@ export class Shell {
     this.language.set('');
     this.category.set('');
     this.country.set('');
+    this.pageIndex.set(0);
   }
   setLocale(event: Event): void {
     const locale = this.value(event);
@@ -137,7 +151,7 @@ export class Shell {
     const file = input.files?.[0];
     if (file) {
       await this.store.operation(async () => {
-        if (file.size > 5_000_000) throw Error('Too large');
+        if (file.size > (file.name.toLowerCase().endsWith('.vztv') ? 12_000_000 : 5_000_000)) throw Error('Too large');
         await this.store.importText(await file.text(), `file:${this.name()}`, this.name());
       });
       input.value = '';

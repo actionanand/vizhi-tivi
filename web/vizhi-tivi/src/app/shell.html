@@ -128,7 +128,7 @@
               >{{ store.t('import_file')
               }}<input
                 type="file"
-                accept=".m3u,.m3u8,audio/x-mpegurl"
+                accept=".m3u,.m3u8,.vztv,audio/x-mpegurl,application/json"
                 (change)="file($event)"
                 [disabled]="store.loading()"
             /></label>
@@ -176,11 +176,11 @@
       <section class="filters" [attr.aria-label]="store.t('channels')">
         <label class="search"
           >{{ store.t('search')
-          }}<input type="search" [value]="search()" (input)="search.set(value($event))"
+          }}<input type="search" [value]="search()" (input)="search.set(value($event)); pageIndex.set(0)"
         /></label>
         <label
           >{{ store.t('language')
-          }}<select [value]="language()" (change)="language.set(value($event))">
+          }}<select [value]="language()" (change)="language.set(value($event)); pageIndex.set(0)">
             <option value="">{{ store.t('all') }}</option>
             @for (l of languages(); track l) {
               <option [value]="l">{{ l }}</option>
@@ -189,7 +189,7 @@
         >
         <label
           >{{ store.t('category')
-          }}<select [value]="category()" (change)="category.set(value($event))">
+          }}<select [value]="category()" (change)="category.set(value($event)); pageIndex.set(0)">
             <option value="">{{ store.t('all') }}</option>
             @for (c of categories(); track c) {
               <option [value]="c">{{ c }}</option>
@@ -198,7 +198,7 @@
         >
         <label
           >{{ store.t('country')
-          }}<select [value]="country()" (change)="country.set(value($event))">
+          }}<select [value]="country()" (change)="country.set(value($event)); pageIndex.set(0)">
             <option value="">{{ store.t('all') }}</option>
             @for (c of countries(); track c) {
               <option [value]="c">{{ c }}</option>
@@ -206,8 +206,15 @@
           </select></label
         >
       </section>
+      @if (pageCount() > 1) {
+        <nav class="actions" [attr.aria-label]="store.t('channels')">
+          <button [disabled]="pageIndex() === 0" (click)="previousPage()" [attr.aria-label]="store.t('back')">←</button>
+          <span>{{ pageIndex() + 1 }} / {{ pageCount() }} · {{ shown().length }}</span>
+          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="nextPage()" [attr.aria-label]="store.t('next')">→</button>
+        </nav>
+      }
       <div class="grid">
-        @for (c of shown(); track c.id) {
+        @for (c of shownPage(); track c.id) {
           <article class="channel">
             <div class="card-top">
               <span class="number">{{
@@ -274,6 +281,13 @@
           <p>{{ store.t(emptyMessage()) }}</p>
         }
       </div>
+      @if (pageCount() > 1) {
+        <nav class="actions" [attr.aria-label]="store.t('channels')">
+          <button [disabled]="pageIndex() === 0" (click)="previousPage()" [attr.aria-label]="store.t('back')">←</button>
+          <span>{{ pageIndex() + 1 }} / {{ pageCount() }} · {{ shown().length }}</span>
+          <button [disabled]="pageIndex() >= pageCount() - 1" (click)="nextPage()" [attr.aria-label]="store.t('next')">→</button>
+        </nav>
+      }
     }
   </main>
 </div>

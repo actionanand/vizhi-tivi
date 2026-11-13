@@ -36,6 +36,7 @@
     <string name="favourite">விரும்பு</string>
     <string name="unfavourite">விருப்பத்திலிருந்து நீக்கு</string>
     <string name="back">பின்</string>
+    <string name="next">அடுத்து</string>
     <string name="retry">மீண்டும் முயல்</string>
     <string name="operation_error">செயலை முடிக்க இயலவில்லை. முகவரி, இணைப்பு அல்லது கோப்பைச் சரிபார்க்கவும். முந்தைய தரவு பாதுகாக்கப்பட்டுள்ளது.</string>
     <string name="playback_error">இயக்க இயலவில்லை. இணைப்பையும் சாதன இணக்கத்தையும் சரிபார்த்து மீண்டும் முயல்க.</string>

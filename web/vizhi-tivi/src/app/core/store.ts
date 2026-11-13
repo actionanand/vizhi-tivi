@@ -9,6 +9,7 @@ import {
   safeUrl,
   stableId,
 } from './domain';
+import { isVztv, parseVztv } from './vztv';
 import en from '../locales/en.json';
 import ta from '../locales/ta.json';
 import sa from '../locales/sa.json';
@@ -369,7 +370,7 @@ export class LiveStore implements OnDestroy {
   async importText(raw: string, identity: string, name: string): Promise<void> {
     await this.operation(async () => {
       const id = await stableId(identity);
-      let channels = await parseM3u(raw, id);
+      let channels = isVztv(raw) ? await parseVztv(raw, id) : await parseM3u(raw, id);
       const previous = this.data().playlists.find((p) => p.id === id)?.channels ?? [];
       channels = channels.map((c) => {
         const override = previous.find((old) => old.id === c.id)?.languageOverride;

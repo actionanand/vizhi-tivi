@@ -36,6 +36,7 @@
     <string name="favourite">प्रियं करोतु</string>
     <string name="unfavourite">प्रियात् अपनयतु</string>
     <string name="back">प्रतिगच्छतु</string>
+    <string name="next">अग्रे</string>
     <string name="retry">पुनः प्रयतताम्</string>
     <string name="operation_error">कार्यं न सम्पन्नम्। सङ्केतं संयोजनं सञ्चिकां वा परीक्षताम्। पूर्वदत्तांशः रक्षितः।</string>
     <string name="playback_error">प्रसारः विफलः। संयोजनं उपकरणयोग्यतां च परीक्ष्य पुनः प्रयतताम्।</string>
