@@ -96,8 +96,8 @@ class Repository(private val context: Context) {
     }
     suspend fun readFile(uri: Uri): String = withContext(Dispatchers.IO) {
         context.contentResolver.openInputStream(uri)?.use { input ->
-            val bytes = readBounded(input)
-            require(bytes.size <= 5_000_000) { "Playlist too large" }
+            val bytes = readBounded(input, 12_000_000)
+            require(bytes.size <= 12_000_000) { "Playlist too large" }
             String(bytes, Charsets.UTF_8)
         } ?: error("Unable to read document")
     }
