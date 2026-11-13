@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { LiveStore, Locale, TextKey } from './core/store';
 import { Channel, playable } from './core/domain';
+import { displayLanguage } from './core/language-display';
 import { LivePlayer } from './player';
 import { DOCUMENT, NgOptimizedImage } from '@angular/common';
 
@@ -47,6 +48,7 @@ export class Shell {
         : this.store.catalogue().channels,
   );
   readonly languages = computed(() => [...new Set(this.base().flatMap((c) => c.languages))].sort());
+  readonly languageChoices = computed(() => [...new Set([...this.languages(), 'ta', 'en', 'sa', 'hi', 'ml', 'te', 'kn', 'si', 'und'])].sort());
   readonly categories = computed(() => [...new Set(this.base().map((c) => c.category))].sort());
   readonly countries = computed(() =>
     [...new Set(this.base().map((c) => c.country))].filter(Boolean).sort(),
@@ -88,6 +90,12 @@ export class Shell {
   }
   nextPage(): void {
     this.pageIndex.set(Math.min(this.pageCount() - 1, this.pageIndex() + 1));
+  }
+  languageLabel(code: string): string {
+    return displayLanguage(code, this.store.data().locale);
+  }
+  languageLabels(channels: string[]): string {
+    return channels.map((lang) => this.languageLabel(lang)).join(', ');
   }
   value(event: Event): string {
     return (event.target as HTMLInputElement).value;
