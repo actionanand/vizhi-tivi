@@ -183,7 +183,7 @@
           }}<select [value]="language()" (change)="language.set(value($event)); pageIndex.set(0)">
             <option value="">{{ store.t('all') }}</option>
             @for (l of languages(); track l) {
-              <option [value]="l">{{ l }}</option>
+              <option [value]="l">{{ languageLabel(l) }}</option>
             }
           </select></label
         >
@@ -247,7 +247,7 @@
               <div class="monogram" aria-hidden="true">{{ c.name.slice(0, 1) }}</div>
             }
             <h2>{{ c.name }}</h2>
-            <p>{{ c.languages.join(', ') }} · {{ c.category }} · {{ c.country }}</p>
+            <p>{{ languageLabels(c.languages) }} · {{ c.category }} · {{ c.country }}</p>
             @if (c.playlistId) {
               <span class="badge">{{ store.t('imported') }}</span
               ><label
@@ -256,10 +256,9 @@
                   [value]="c.languages[0]"
                   (change)="store.correctLanguage(c, value($event))"
                 >
-                  <option value="und">—</option>
-                  <option value="ta">தமிழ்</option>
-                  <option value="en">English</option>
-                  <option value="sa">संस्कृतम्</option>
+                  @for (l of languageChoices(); track l) {
+                    <option [value]="l">{{ languageLabel(l) }}</option>
+                  }
                 </select></label
               >
               @if (c.languageOverride && c.sourceLanguages) {
