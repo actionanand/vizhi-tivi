@@ -137,7 +137,7 @@ export class Shell {
     const file = input.files?.[0];
     if (file) {
       await this.store.operation(async () => {
-        if (file.size > 5_000_000) throw Error('Too large');
+        if (file.size > (file.name.toLowerCase().endsWith('.vztv') ? 12_000_000 : 5_000_000)) throw Error('Too large');
         await this.store.importText(await file.text(), `file:${this.name()}`, this.name());
       });
       input.value = '';
