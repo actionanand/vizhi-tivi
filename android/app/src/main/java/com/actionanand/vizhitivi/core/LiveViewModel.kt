@@ -143,7 +143,7 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
         val id = stableId(source)
         val current = state.value.playlists
         val prior = current.find { it.id == id }?.channels.orEmpty().associateBy { it.id }
-        val channels = (if (isVztv(text)) parseVztv(text, id) else parseM3u(text, id)).map { c -> prior[c.id]?.languageOverride?.let { c.copy(languages = listOf(it), languageOverride = it) } ?: c }
+        val channels = withContext(Dispatchers.Default) { (if (isVztv(text)) parseVztv(text, id) else parseM3u(text, id)).map { c -> prior[c.id]?.languageOverride?.let { c.copy(languages = listOf(it), languageOverride = it) } ?: c } }
         val old = prior.values.mapNotNull { c -> c.number?.let { c.id to it } }.toMap()
         val reserved = (state.value.catalogue.channels + current.filter { it.id != id }.flatMap { it.channels }).mapNotNull { it.number }.toSet()
         // Default imports remain unnumbered. The opt-in local policy never reserves official assignments.
