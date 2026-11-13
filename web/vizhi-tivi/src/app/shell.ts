@@ -51,6 +51,8 @@ export class Shell {
   readonly countries = computed(() =>
     [...new Set(this.base().map((c) => c.country))].filter(Boolean).sort(),
   );
+  readonly pageIndex = signal(0);
+  readonly pageSize = 80;
   readonly shown = computed(() =>
     this.base()
       .filter(
@@ -64,6 +66,11 @@ export class Shell {
         (a, b) => (a.number ?? Infinity) - (b.number ?? Infinity) || a.name.localeCompare(b.name),
       ),
   );
+  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.shown().length / this.pageSize)));
+  readonly shownPage = computed(() => {
+    const index = Math.min(this.pageIndex(), this.pageCount() - 1);
+    return this.shown().slice(index * this.pageSize, (index + 1) * this.pageSize);
+  });
   readonly recent = computed(() =>
     this.store
       .data()
@@ -88,6 +95,7 @@ export class Shell {
     this.language.set('');
     this.category.set('');
     this.country.set('');
+    this.pageIndex.set(0);
   }
   setLocale(event: Event): void {
     const locale = this.value(event);
